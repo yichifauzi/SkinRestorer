@@ -66,7 +66,7 @@ public class SkinRestorer implements DedicatedServerModInitializer {
         playerManager.sendWorldInfo(player, serverWorld);
         playerManager.sendPlayerStatus(player);
         for (StatusEffectInstance statusEffectInstance : player.getStatusEffects()) {
-            player.networkHandler.sendPacket(new EntityStatusEffectS2CPacket(player.getId(), statusEffectInstance, false));
+            player.networkHandler.sendPacket(new EntityStatusEffectS2CPacket(player.getId(), statusEffectInstance));
         }
     }
 
