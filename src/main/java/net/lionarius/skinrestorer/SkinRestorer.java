@@ -1,6 +1,5 @@
 package net.lionarius.skinrestorer;
 
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
@@ -8,12 +7,12 @@ import com.mojang.authlib.properties.Property;
 import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerChunkManager;
+import net.minecraft.server.world.ServerWorld;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,50 +39,32 @@ public class SkinRestorer implements DedicatedServerModInitializer {
     }
 
     public static void refreshPlayer(ServerPlayerEntity player) {
-        List<com.mojang.datafixers.util.Pair<EquipmentSlot, ItemStack>> equipment = Lists.newArrayList();
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            ItemStack itemStack = player.getEquippedStack(slot);
-            if (!itemStack.isEmpty()) {
-                equipment.add(com.mojang.datafixers.util.Pair.of(slot, itemStack.copy()));
-            }
-        }
+        ServerWorld serverWorld = player.getServerWorld();
+        PlayerManager playerManager = serverWorld.getServer().getPlayerManager();
+        ServerChunkManager chunkManager = serverWorld.getChunkManager();
 
-        for (ServerPlayerEntity observer : player.server.getPlayerManager().getPlayerList()) {
-            observer.networkHandler.sendPacket(new PlayerRemoveS2CPacket(List.of(player.getUuid())));
-            observer.networkHandler.sendPacket(PlayerListS2CPacket.entryFromPlayer(Collections.singleton(player)));
-
-            if (observer == player)
-                continue;
-
-            observer.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(player.getId()));
-            observer.networkHandler.sendPacket(new EntitySpawnS2CPacket(player));
-            observer.networkHandler.sendPacket(new EntityPositionS2CPacket(player));
-            observer.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(player.getId(), player.getDataTracker().getChangedEntries()));
-
-            if (!equipment.isEmpty())
-                observer.networkHandler.sendPacket(new EntityEquipmentUpdateS2CPacket(player.getId(), equipment));
-
-            if (player.hasVehicle())
-                observer.networkHandler.sendPacket(new EntityPassengersSetS2CPacket(player.getVehicle()));
-        }
-
-        player.networkHandler.sendPacket(new PlayerRespawnS2CPacket(player.createCommonPlayerSpawnInfo(player.getServerWorld()), PlayerRespawnS2CPacket.KEEP_TRACKED_DATA));
-        player.networkHandler.sendPacket(new GameStateChangeS2CPacket(GameStateChangeS2CPacket.INITIAL_CHUNKS_COMING, 0));
+        playerManager.sendToAll(new BundleS2CPacket(
+                List.of(
+                        new PlayerRemoveS2CPacket(List.of(player.getUuid())),
+                        PlayerListS2CPacket.entryFromPlayer(Collections.singleton(player))
+                )
+        ));
+        chunkManager.unloadEntity(player);
+        chunkManager.loadEntity(player);
+        player.networkHandler.sendPacket(new BundleS2CPacket(
+                List.of(
+                        new PlayerRespawnS2CPacket(player.createCommonPlayerSpawnInfo(serverWorld), PlayerRespawnS2CPacket.KEEP_ALL),
+                        new GameStateChangeS2CPacket(GameStateChangeS2CPacket.INITIAL_CHUNKS_COMING, 0)
+                )
+        ));
         player.networkHandler.requestTeleport(player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
-        player.networkHandler.sendPacket(new UpdateSelectedSlotS2CPacket(player.getInventory().selectedSlot));
-        player.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(player.getId(), player.getDataTracker().getChangedEntries()));
-
+        player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
         player.sendAbilitiesUpdate();
-        player.playerScreenHandler.updateToClient();
-
-        player.networkHandler.sendPacket(new ExperienceBarUpdateS2CPacket(player.experienceProgress, player.totalExperience, player.experienceLevel));
-        player.networkHandler.sendPacket(new HealthUpdateS2CPacket(player.getHealth(), player.getHungerManager().getFoodLevel(), player.getHungerManager().getSaturationLevel()));
-
-        for (StatusEffectInstance instance : player.getStatusEffects())
-            player.networkHandler.sendPacket(new EntityStatusEffectS2CPacket(player.getId(), instance, false));
-
-        if (player.hasVehicle())
-            player.networkHandler.sendPacket(new EntityPassengersSetS2CPacket(player.getVehicle()));
+        player.addExperience(0);
+        playerManager.sendCommandTree(player);
+        playerManager.sendWorldInfo(player, serverWorld);
+        playerManager.sendPlayerStatus(player);
+        playerManager.sendStatusEffects(player);
     }
 
     public static CompletableFuture<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<Property> skinSupplier) {
