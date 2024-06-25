@@ -56,7 +56,7 @@ public class SkinRestorer implements DedicatedServerModInitializer {
                 continue;
 
             observer.networkHandler.sendPacket(new EntitiesDestroyS2CPacket(player.getId()));
-            observer.networkHandler.sendPacket(new EntitySpawnS2CPacket(player));
+            observer.networkHandler.sendPacket(new EntitySpawnS2CPacket(player.getId(), player.getUuid(), player.getX(), player.getY(), player.getZ(), player.getPitch(), player.getYaw(), player.getType(), 0, player.getVelocity(), player.getHeadYaw()));
             observer.networkHandler.sendPacket(new EntityPositionS2CPacket(player));
             observer.networkHandler.sendPacket(new EntityTrackerUpdateS2CPacket(player.getId(), player.getDataTracker().getChangedEntries()));
 
