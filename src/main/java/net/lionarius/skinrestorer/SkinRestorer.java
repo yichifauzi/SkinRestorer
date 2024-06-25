@@ -80,7 +80,7 @@ public class SkinRestorer implements DedicatedServerModInitializer {
         player.networkHandler.sendPacket(new HealthUpdateS2CPacket(player.getHealth(), player.getHungerManager().getFoodLevel(), player.getHungerManager().getSaturationLevel()));
 
         for (StatusEffectInstance instance : player.getStatusEffects())
-            player.networkHandler.sendPacket(new EntityStatusEffectS2CPacket(player.getId(), instance));
+            player.networkHandler.sendPacket(new EntityStatusEffectS2CPacket(player.getId(), instance, false));
 
         if (player.hasVehicle())
             player.networkHandler.sendPacket(new EntityPassengersSetS2CPacket(player.getVehicle()));
