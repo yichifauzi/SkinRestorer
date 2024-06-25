@@ -7,6 +7,7 @@ import com.mojang.authlib.properties.Property;
 import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
@@ -64,7 +65,9 @@ public class SkinRestorer implements DedicatedServerModInitializer {
         playerManager.sendCommandTree(player);
         playerManager.sendWorldInfo(player, serverWorld);
         playerManager.sendPlayerStatus(player);
-        playerManager.sendStatusEffects(player);
+        for (StatusEffectInstance statusEffectInstance : player.getStatusEffects()) {
+            player.networkHandler.sendPacket(new EntityStatusEffectS2CPacket(player.getId(), statusEffectInstance, false));
+        }
     }
 
     public static CompletableFuture<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<Property> skinSupplier) {
