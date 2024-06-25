@@ -59,7 +59,7 @@ public class SkinCommand {
                         .executes(context ->
                                 skinAction(context.getSource(),
                                         () -> DEFAULT_SKIN))
-                        .then(argument("targets", GameProfileArgumentType.gameProfile()).executes(context ->
+                        .then(argument("targets", GameProfileArgumentType.gameProfile()).requires(source -> source.hasPermissionLevel(3)).executes(context ->
                                 skinAction(context.getSource(), GameProfileArgumentType.getProfileArgument(context, "targets"), true,
                                         () -> DEFAULT_SKIN))))
         );
