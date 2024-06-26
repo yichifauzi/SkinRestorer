@@ -6,8 +6,6 @@ import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.SkinResult;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,8 +20,6 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
     @Shadow @Nullable
     private GameProfile profile;
-    @Shadow @Final
-    static Logger LOGGER;
 
     @Unique
     private CompletableFuture<SkinResult> skinrestorer_pendingSkin;
@@ -32,8 +28,9 @@ public abstract class ServerLoginNetworkHandlerMixin {
     public void waitForSkin(CallbackInfo ci) {
         if (skinrestorer_pendingSkin == null) {
             skinrestorer_pendingSkin = CompletableFuture.supplyAsync(() -> {
-                LOGGER.debug("Fetching {}'s skin", profile.getName());
-                if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId())) {
+                SkinRestorer.LOGGER.debug("Fetching {}'s skin", profile.getName());
+
+                if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId())) { // when player joins for the first time fetch Mojang skin by his username
                     SkinResult result = MojangSkinProvider.getSkin(profile.getName());
                     if (!result.isError())
                         SkinRestorer.getSkinStorage().setSkin(profile.getId(), result.getSkin().orElse(null));
