@@ -25,7 +25,7 @@ public class MineskinSkinProvider {
 
             return SkinResult.success(new Property("textures", texture.get("value").getAsString(), texture.get("signature").getAsString()));
         } catch (IOException e) {
-            return SkinResult.error();
+            return SkinResult.error(e);
         }
     }
 }

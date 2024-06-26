@@ -33,7 +33,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
                 if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId())) { // when player joins for the first time fetch Mojang skin by his username
                     SkinResult result = MojangSkinProvider.getSkin(profile.getName());
                     if (!result.isError())
-                        SkinRestorer.getSkinStorage().setSkin(profile.getId(), result.getSkin().orElse(null));
+                        SkinRestorer.getSkinStorage().setSkin(profile.getId(), result.getSkin());
                 }
 
                 return SkinResult.ofNullable(SkinRestorer.getSkinStorage().getSkin(profile.getId()));
@@ -43,11 +43,5 @@ public abstract class ServerLoginNetworkHandlerMixin {
         if (!skinrestorer_pendingSkin.isDone()) {
             ci.cancel();
         }
-    }
-
-    @Inject(method = "sendSuccessPacket", at = @At("HEAD"))
-    public void applyRestoredSkinHook(GameProfile profile, CallbackInfo ci) {
-        if (skinrestorer_pendingSkin != null)
-            SkinRestorer.applyRestoredSkin(profile, skinrestorer_pendingSkin.getNow(SkinResult.empty()).getSkin().orElse(null));
     }
 }

@@ -7,31 +7,35 @@ import java.util.Optional;
 
 public class SkinResult {
     private final Property skin;
-    private final boolean isError;
+    private final Exception exception;
 
-    private SkinResult(Property skin, boolean isError) {
+    private SkinResult(Property skin, Exception exception) {
         this.skin = skin;
-        this.isError = isError;
+        this.exception = exception;
     }
 
-    public Optional<Property> getSkin() {
-        return Optional.ofNullable(this.skin);
+    public Property getSkin() {
+        return this.skin;
+    }
+
+    public Exception getError() {
+        return this.exception;
     }
 
     public boolean isError() {
-        return this.isError;
+        return this.exception != null;
     }
 
     public static SkinResult empty() {
-        return new SkinResult(null, false);
+        return new SkinResult(null, null);
     }
 
-    public static SkinResult error() {
-        return new SkinResult(null, true);
+    public static SkinResult error(Exception e) {
+        return new SkinResult(null, e);
     }
 
     public static SkinResult success(@NotNull Property skin) {
-        return new SkinResult(skin, false);
+        return new SkinResult(skin, null);
     }
 
     public static SkinResult ofNullable(Property skin) {

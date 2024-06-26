@@ -67,40 +67,41 @@ public class SkinRestorer implements DedicatedServerModInitializer {
     }
 
     public static CompletableFuture<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<SkinResult> skinSupplier) {
-        return CompletableFuture.<Pair<Optional<Property>, Collection<GameProfile>>>supplyAsync(() -> {
-            HashSet<GameProfile> acceptedProfiles = new HashSet<>();
-            SkinResult result = skinSupplier.get();
-            if (result.isError()) {
-                SkinRestorer.LOGGER.error("Cannot get the skin for {}", targets.stream().findFirst().orElseThrow());
-                return Pair.of(null, Collections.emptySet());
-            }
+        return CompletableFuture.<Pair<Property, Collection<GameProfile>>>supplyAsync(() -> {
+                    SkinResult result = skinSupplier.get();
+                    if (result.isError()) {
+                        SkinRestorer.LOGGER.error("Could not get skin", result.getError());
+                        return Pair.of(null, Collections.emptySet());
+                    }
 
-            Optional<Property> skin = result.getSkin();
+                    Property skin = result.getSkin();
 
-            for (GameProfile profile : targets) {
-                SkinRestorer.getSkinStorage().setSkin(profile.getId(), skin.orElse(null));
-                acceptedProfiles.add(profile);
-            }
+                    for (GameProfile profile : targets)
+                        SkinRestorer.getSkinStorage().setSkin(profile.getId(), skin);
 
-            return Pair.of(skin, acceptedProfiles);
-        }).<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>>thenApplyAsync(pair -> {
-            Property skin = pair.left().orElse(null);
+                    HashSet<GameProfile> acceptedProfiles = new HashSet<>(targets);
 
-            Collection<GameProfile> acceptedProfiles = pair.right();
-            HashSet<ServerPlayerEntity> acceptedPlayers = new HashSet<>();
+                    return Pair.of(skin, acceptedProfiles);
+                }).<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>>thenApplyAsync(pair -> {
+                    Property skin = pair.left(); // NullPtrException will be caught by 'exceptionally'
 
-            for (GameProfile profile : acceptedProfiles) {
-                ServerPlayerEntity player = server.getPlayerManager().getPlayer(profile.getId());
+                    Collection<GameProfile> acceptedProfiles = pair.right();
+                    HashSet<ServerPlayerEntity> acceptedPlayers = new HashSet<>();
 
-                if (player == null || areSkinPropertiesEquals(skin, getPlayerSkin(player)))
-                    continue;
+                    for (GameProfile profile : acceptedProfiles) {
+                        ServerPlayerEntity player = server.getPlayerManager().getPlayer(profile.getId());
 
-                applyRestoredSkin(player.getGameProfile(), skin);
-                refreshPlayer(player);
-                acceptedPlayers.add(player);
-            }
-            return Pair.of(acceptedPlayers, acceptedProfiles);
-        }, server).orTimeout(10, TimeUnit.SECONDS).exceptionally(e -> Pair.of(Collections.emptySet(), Collections.emptySet()));
+                        if (player == null || areSkinPropertiesEquals(skin, getPlayerSkin(player)))
+                            continue;
+
+                        applyRestoredSkin(player.getGameProfile(), skin);
+                        refreshPlayer(player);
+                        acceptedPlayers.add(player);
+                    }
+                    return Pair.of(acceptedPlayers, acceptedProfiles);
+                }, server)
+                .orTimeout(10, TimeUnit.SECONDS)
+                .exceptionally(e -> Pair.of(Collections.emptySet(), Collections.emptySet()));
     }
 
     public static void applyRestoredSkin(GameProfile profile, Property skin) {

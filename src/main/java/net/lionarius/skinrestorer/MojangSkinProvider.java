@@ -22,7 +22,7 @@ public class MojangSkinProvider {
 
             return SkinResult.success(new Property("textures", texture.get("value").getAsString(), texture.get("signature").getAsString()));
         } catch (Exception e) {
-            return SkinResult.error();
+            return SkinResult.error(e);
         }
     }
 
