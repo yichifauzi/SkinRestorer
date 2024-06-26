@@ -21,8 +21,8 @@ public abstract class PlayerManagerMixin {
 
     @Shadow
     public abstract List<ServerPlayerEntity> getPlayerList();
-
-    @Shadow @Final private MinecraftServer server;
+    @Shadow @Final
+    private MinecraftServer server;
 
     @Inject(method = "remove", at = @At("TAIL"))
     private void remove(ServerPlayerEntity player, CallbackInfo ci) {

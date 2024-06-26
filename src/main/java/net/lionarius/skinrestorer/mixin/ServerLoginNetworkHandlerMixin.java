@@ -6,12 +6,12 @@ import net.lionarius.skinrestorer.MojangSkinProvider;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.SkinStorage;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -21,10 +21,12 @@ import java.util.concurrent.CompletableFuture;
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
 
-	@Shadow @Nullable GameProfile profile;
-
+	@Shadow @Nullable
+	private GameProfile profile;
 	@Shadow @Final
 	static Logger LOGGER;
+
+	@Unique
 	private CompletableFuture<Property> skinrestorer_pendingSkin;
 
 	@Inject(method = "tickVerify", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;checkCanJoin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/text/Text;"), cancellable = true)

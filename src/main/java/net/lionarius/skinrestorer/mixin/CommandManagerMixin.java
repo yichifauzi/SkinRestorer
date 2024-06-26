@@ -15,8 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(CommandManager.class)
 public abstract class CommandManagerMixin {
 
-    @Final
-    @Shadow
+    @Final @Shadow
     private CommandDispatcher<ServerCommandSource> dispatcher;
 
     @Inject(method = "<init>", at = @At(value = "TAIL"))
