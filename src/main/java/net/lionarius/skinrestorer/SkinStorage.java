@@ -2,13 +2,14 @@ package net.lionarius.skinrestorer;
 
 import com.mojang.authlib.properties.Property;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SkinStorage {
 
-    private final Map<UUID, Property> skinMap = new HashMap<>();
+    private final Map<UUID, Optional<Property>> skinMap = new ConcurrentHashMap<>();
     private final SkinIO skinIO;
 
     public SkinStorage(SkinIO skinIO) {
@@ -25,16 +26,16 @@ public class SkinStorage {
             setSkin(uuid, skin);
         }
 
-        return skinMap.get(uuid);
+        return skinMap.get(uuid).orElse(null);
     }
 
     public void removeSkin(UUID uuid) {
         if (skinMap.containsKey(uuid)) {
-            skinIO.saveSkin(uuid, skinMap.get(uuid));
+            skinIO.saveSkin(uuid, skinMap.get(uuid).orElse(null));
         }
     }
 
     public void setSkin(UUID uuid, Property skin) {
-        skinMap.put(uuid, skin);
+        skinMap.put(uuid, Optional.ofNullable(skin));
     }
 }
