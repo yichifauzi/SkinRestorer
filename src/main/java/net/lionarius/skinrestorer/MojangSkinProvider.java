@@ -14,15 +14,15 @@ public class MojangSkinProvider {
     private static final String API = "https://api.mojang.com/users/profiles/minecraft/";
     private static final String SESSION_SERVER = "https://sessionserver.mojang.com/session/minecraft/profile/";
 
-    public static Property getSkin(String name) {
+    public static SkinResult getSkin(String name) {
         try {
             UUID uuid = getUUID(name);
             JsonObject texture = JsonUtils.parseJson(WebUtils.GETRequest(new URL(SESSION_SERVER + uuid + "?unsigned=false")))
                     .getAsJsonArray("properties").get(0).getAsJsonObject();
 
-            return new Property("textures", texture.get("value").getAsString(), texture.get("signature").getAsString());
+            return SkinResult.success(new Property("textures", texture.get("value").getAsString(), texture.get("signature").getAsString()));
         } catch (Exception e) {
-            return null;
+            return SkinResult.error();
         }
     }
 

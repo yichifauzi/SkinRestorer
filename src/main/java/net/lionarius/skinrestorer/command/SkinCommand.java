@@ -1,12 +1,12 @@
 package net.lionarius.skinrestorer.command;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.lionarius.skinrestorer.MineskinSkinProvider;
 import net.lionarius.skinrestorer.MojangSkinProvider;
 import net.lionarius.skinrestorer.SkinRestorer;
+import net.lionarius.skinrestorer.SkinResult;
 import net.lionarius.skinrestorer.enums.SkinVariant;
 import net.lionarius.skinrestorer.util.TranslationUtils;
 import net.minecraft.command.argument.GameProfileArgumentType;
@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Supplier;
 
-import static net.lionarius.skinrestorer.SkinStorage.DEFAULT_SKIN;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -58,26 +57,29 @@ public class SkinCommand {
                 .then(literal("clear")
                         .executes(context ->
                                 skinAction(context.getSource(),
-                                        () -> DEFAULT_SKIN))
+                                        SkinResult::empty))
                         .then(argument("targets", GameProfileArgumentType.gameProfile()).requires(source -> source.hasPermissionLevel(2)).executes(context ->
                                 skinAction(context.getSource(), GameProfileArgumentType.getProfileArgument(context, "targets"), true,
-                                        () -> DEFAULT_SKIN))))
+                                        SkinResult::empty))))
         );
     }
 
-    private static int skinAction(ServerCommandSource src, Collection<GameProfile> targets, boolean setByOperator, Supplier<Property> skinSupplier) {
+    private static int skinAction(ServerCommandSource src, Collection<GameProfile> targets, boolean setByOperator, Supplier<SkinResult> skinSupplier) {
         SkinRestorer.setSkinAsync(src.getServer(), targets, skinSupplier).thenAccept(pair -> {
             Collection<GameProfile> profiles = pair.right();
             Collection<ServerPlayerEntity> players = pair.left();
-            if (profiles.size() == 0) {
+
+            if (profiles.isEmpty()) {
                 src.sendError(Text.of(TranslationUtils.translation.skinActionFailed));
                 return;
             }
+
             if (setByOperator) {
                 src.sendFeedback(() -> Text.of(
                         String.format(TranslationUtils.translation.skinActionAffectedProfile,
                                 String.join(", ", profiles.stream().map(GameProfile::getName).toList()))), true);
-                if (players.size() != 0) {
+
+                if (!players.isEmpty()) {
                     src.sendFeedback(() -> Text.of(
                             String.format(TranslationUtils.translation.skinActionAffectedPlayer,
                                     String.join(", ", players.stream().map(p -> p.getGameProfile().getName()).toList()))), true);
@@ -89,7 +91,7 @@ public class SkinCommand {
         return targets.size();
     }
 
-    private static int skinAction(ServerCommandSource src, Supplier<Property> skinSupplier) {
+    private static int skinAction(ServerCommandSource src, Supplier<SkinResult> skinSupplier) {
         if (src.getPlayer() == null)
             return 0;
 

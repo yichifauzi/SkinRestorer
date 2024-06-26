@@ -17,6 +17,10 @@ public class SkinIO {
         this.savePath = savePath;
     }
 
+    public boolean skinExists(UUID uuid) {
+        return savePath.resolve(uuid + FILE_EXTENSION).toFile().exists();
+    }
+
     public Property loadSkin(UUID uuid) {
         return JsonUtils.fromJson(FileUtils.readFile(savePath.resolve(uuid + FILE_EXTENSION).toFile()), Property.class);
     }
