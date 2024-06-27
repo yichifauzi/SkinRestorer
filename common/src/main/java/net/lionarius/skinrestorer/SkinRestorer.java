@@ -1,6 +1,5 @@
 package net.lionarius.skinrestorer;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -9,12 +8,9 @@ import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinStorage;
 import net.lionarius.skinrestorer.util.JsonUtils;
-import net.minecraft.network.packet.s2c.play.*;
+import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerChunkManager;
-import net.minecraft.server.world.ServerWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,38 +40,6 @@ public class SkinRestorer {
     public static void onInitialize(Path rootConfigDir) {
         SkinRestorer.configDir = rootConfigDir.resolve(MOD_ID);
         SkinRestorer.skinStorage = new SkinStorage(new SkinIO(SkinRestorer.configDir));
-    }
-    
-    public static void refreshPlayer(ServerPlayerEntity player) {
-        ServerWorld serverWorld = player.getServerWorld();
-        PlayerManager playerManager = serverWorld.getServer().getPlayerManager();
-        ServerChunkManager chunkManager = serverWorld.getChunkManager();
-        
-        playerManager.sendToAll(new BundleS2CPacket(
-                List.of(
-                        new PlayerRemoveS2CPacket(List.of(player.getUuid())),
-                        PlayerListS2CPacket.entryFromPlayer(Collections.singleton(player))
-                )
-        ));
-        
-        if (!player.isDead()) {
-            chunkManager.unloadEntity(player);
-            chunkManager.loadEntity(player);
-            player.networkHandler.send(new BundleS2CPacket(
-                    List.of(
-                            new PlayerRespawnS2CPacket(player.createCommonPlayerSpawnInfo(serverWorld), PlayerRespawnS2CPacket.KEEP_ALL),
-                            new GameStateChangeS2CPacket(GameStateChangeS2CPacket.INITIAL_CHUNKS_COMING, 0)
-                    )
-            ), null);
-            player.networkHandler.requestTeleport(player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
-            player.networkHandler.send(new EntityVelocityUpdateS2CPacket(player), null);
-            player.sendAbilitiesUpdate();
-            player.addExperience(0);
-            playerManager.sendCommandTree(player);
-            playerManager.sendWorldInfo(player, serverWorld);
-            playerManager.sendPlayerStatus(player);
-            playerManager.sendStatusEffects(player);
-        }
     }
     
     public static CompletableFuture<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<SkinResult> skinSupplier) {
@@ -108,7 +72,7 @@ public class SkinRestorer {
                             continue;
                         
                         applyRestoredSkin(player.getGameProfile(), skin);
-                        refreshPlayer(player);
+                        PlayerUtils.refreshPlayer(player);
                         acceptedPlayers.add(player);
                     }
                     return Pair.of(acceptedPlayers, acceptedProfiles);
