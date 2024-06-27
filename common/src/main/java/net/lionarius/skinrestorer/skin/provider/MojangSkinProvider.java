@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.util.JsonUtils;
+import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.WebUtils;
 
 import java.io.IOException;
@@ -21,7 +22,7 @@ public class MojangSkinProvider {
             JsonObject texture = JsonUtils.parseJson(WebUtils.GETRequest(new URL(SESSION_SERVER + uuid + "?unsigned=false")))
                     .getAsJsonArray("properties").get(0).getAsJsonObject();
             
-            return SkinResult.success(new Property("textures", texture.get("value").getAsString(), texture.get("signature").getAsString()));
+            return SkinResult.success(new Property(PlayerUtils.TEXTURES_KEY, texture.get("value").getAsString(), texture.get("signature").getAsString()));
         } catch (Exception e) {
             return SkinResult.error(e);
         }

@@ -13,6 +13,8 @@ import java.util.List;
 
 public class PlayerUtils {
     
+    public static final String TEXTURES_KEY = "textures";
+    
     public static boolean isFakePlayer(ServerPlayerEntity player) {
         return player.getClass() != ServerPlayerEntity.class; // if the player isn't a server player entity, it must be someone's fake player
     }
@@ -50,14 +52,14 @@ public class PlayerUtils {
     }
     
     public static Property getPlayerSkin(ServerPlayerEntity player) {
-        return player.getGameProfile().getProperties().get("textures").stream().findFirst().orElse(null);
+        return player.getGameProfile().getProperties().get(TEXTURES_KEY).stream().findFirst().orElse(null);
     }
     
     public static void applyRestoredSkin(ServerPlayerEntity player, Property skin) {
         GameProfile profile = player.getGameProfile();
-        profile.getProperties().removeAll("textures");
+        profile.getProperties().removeAll(TEXTURES_KEY);
         
         if (skin != null)
-            profile.getProperties().put("textures", skin);
+            profile.getProperties().put(TEXTURES_KEY, skin);
     }
 }

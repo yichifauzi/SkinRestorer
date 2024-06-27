@@ -2,9 +2,10 @@ package net.lionarius.skinrestorer.skin.provider;
 
 import com.google.gson.JsonObject;
 import com.mojang.authlib.properties.Property;
-import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.skin.SkinResult;
+import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.util.JsonUtils;
+import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.WebUtils;
 
 import java.io.IOException;
@@ -24,7 +25,7 @@ public class MineskinSkinProvider {
             JsonObject texture = JsonUtils.parseJson(WebUtils.POSTRequest(new URL(API), USER_AGENT, TYPE, TYPE, input))
                     .getAsJsonObject("data").getAsJsonObject("texture");
             
-            return SkinResult.success(new Property("textures", texture.get("value").getAsString(), texture.get("signature").getAsString()));
+            return SkinResult.success(new Property(PlayerUtils.TEXTURES_KEY, texture.get("value").getAsString(), texture.get("signature").getAsString()));
         } catch (IOException e) {
             return SkinResult.error(e);
         }
