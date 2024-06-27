@@ -68,10 +68,10 @@ public class SkinRestorer {
                     for (GameProfile profile : acceptedProfiles) {
                         ServerPlayerEntity player = server.getPlayerManager().getPlayer(profile.getId());
                         
-                        if (player == null || areSkinPropertiesEquals(skin, getPlayerSkin(player)))
+                        if (player == null || areSkinPropertiesEquals(skin, PlayerUtils.getPlayerSkin(player)))
                             continue;
                         
-                        applyRestoredSkin(player.getGameProfile(), skin);
+                        PlayerUtils.applyRestoredSkin(player, skin);
                         PlayerUtils.refreshPlayer(player);
                         acceptedPlayers.add(player);
                     }
@@ -82,17 +82,6 @@ public class SkinRestorer {
                     SkinRestorer.LOGGER.error(String.valueOf(e));
                     return Pair.of(Collections.emptySet(), Collections.emptySet());
                 });
-    }
-    
-    public static void applyRestoredSkin(GameProfile profile, Property skin) {
-        profile.getProperties().removeAll("textures");
-        
-        if (skin != null)
-            profile.getProperties().put("textures", skin);
-    }
-    
-    private static Property getPlayerSkin(ServerPlayerEntity player) {
-        return player.getGameProfile().getProperties().get("textures").stream().findFirst().orElse(null);
     }
     
     private static boolean areSkinPropertiesEquals(Property x, Property y) {

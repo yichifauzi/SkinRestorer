@@ -1,5 +1,7 @@
 package net.lionarius.skinrestorer.util;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -45,5 +47,17 @@ public class PlayerUtils {
             playerManager.sendPlayerStatus(player);
             playerManager.sendStatusEffects(player);
         }
+    }
+    
+    public static Property getPlayerSkin(ServerPlayerEntity player) {
+        return player.getGameProfile().getProperties().get("textures").stream().findFirst().orElse(null);
+    }
+    
+    public static void applyRestoredSkin(ServerPlayerEntity player, Property skin) {
+        GameProfile profile = player.getGameProfile();
+        profile.getProperties().removeAll("textures");
+        
+        if (skin != null)
+            profile.getProperties().put("textures", skin);
     }
 }
