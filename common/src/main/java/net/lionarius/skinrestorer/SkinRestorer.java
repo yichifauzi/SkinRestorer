@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.Pair;
 import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinStorage;
+import net.lionarius.skinrestorer.util.JsonUtils;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
@@ -17,9 +18,10 @@ import net.minecraft.server.world.ServerWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -129,20 +131,6 @@ public class SkinRestorer {
         return player.getGameProfile().getProperties().get("textures").stream().findFirst().orElse(null);
     }
     
-    private static final Gson gson = new Gson();
-    
-    private static JsonObject skinPropertyToJson(Property property) {
-        try {
-            JsonObject json = gson.fromJson(new String(Base64.getDecoder().decode(property.value()), StandardCharsets.UTF_8), JsonObject.class);
-            if (json != null)
-                json.remove("timestamp");
-            
-            return json;
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-    
     private static boolean areSkinPropertiesEquals(Property x, Property y) {
         if (x == y)
             return true;
@@ -153,8 +141,8 @@ public class SkinRestorer {
         if (x.equals(y))
             return true;
         
-        JsonObject xJson = skinPropertyToJson(x);
-        JsonObject yJson = skinPropertyToJson(y);
+        JsonObject xJson = JsonUtils.skinPropertyToJson(x);
+        JsonObject yJson = JsonUtils.skinPropertyToJson(y);
         
         if (xJson == null || yJson == null)
             return false;
