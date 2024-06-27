@@ -30,9 +30,8 @@ public class SkinStorage {
     }
 
     public void removeSkin(UUID uuid) {
-        if (skinMap.containsKey(uuid)) {
+        if (skinMap.containsKey(uuid))
             skinIO.saveSkin(uuid, skinMap.get(uuid).orElse(null));
-        }
     }
 
     public void setSkin(UUID uuid, Property skin) {

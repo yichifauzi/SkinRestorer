@@ -12,6 +12,7 @@ public class StringUtils {
         while ((inputLine = reader.readLine()) != null) {
             response.append(inputLine);
         }
+
         return response.toString();
     }
 }

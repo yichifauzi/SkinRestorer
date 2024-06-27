@@ -79,8 +79,9 @@ public class SkinRestorer implements DedicatedServerModInitializer {
 
                     Property skin = result.getSkin();
 
-                    for (GameProfile profile : targets)
+                    for (GameProfile profile : targets) {
                         SkinRestorer.getSkinStorage().setSkin(profile.getId(), skin);
+                    }
 
                     HashSet<GameProfile> acceptedProfiles = new HashSet<>(targets);
 
@@ -109,6 +110,7 @@ public class SkinRestorer implements DedicatedServerModInitializer {
 
     public static void applyRestoredSkin(GameProfile profile, Property skin) {
         profile.getProperties().removeAll("textures");
+
         if (skin != null)
             profile.getProperties().put("textures", skin);
     }
@@ -122,7 +124,7 @@ public class SkinRestorer implements DedicatedServerModInitializer {
     private static JsonObject skinPropertyToJson(Property property) {
         try {
             JsonObject json = gson.fromJson(new String(Base64.getDecoder().decode(property.value()), StandardCharsets.UTF_8), JsonObject.class);
-            if (!Objects.isNull(json))
+            if (json != null)
                 json.remove("timestamp");
 
             return json;

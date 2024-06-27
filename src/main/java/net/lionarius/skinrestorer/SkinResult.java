@@ -3,8 +3,6 @@ package net.lionarius.skinrestorer;
 import com.mojang.authlib.properties.Property;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-
 public class SkinResult {
     private final Property skin;
     private final Exception exception;
