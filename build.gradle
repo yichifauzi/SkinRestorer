@@ -2,10 +2,12 @@ plugins {
     id 'dev.architectury.loom' version '1.6-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    id "io.github.pacifistmc.forgix" version "1.2.9"
 //    id "com.modrinth.minotaur" version "2.+"
 //    id 'net.darkhax.curseforgegradle' version '1.1.15'
 }
 
+version = "${project.mod_version}+${project.minecraft_version}"
 ext.version_name = "${project.capitalized_name} ${project.mod_version}"
 ext.headTag = "git describe --tags --abbrev=0 HEAD".execute([], rootProject.projectDir).text.trim()
 ext.previousTag = "git describe --tags --abbrev=0 HEAD^".execute([], rootProject.projectDir).text.trim()
@@ -14,20 +16,30 @@ architectury {
     minecraft = project.minecraft_version
 }
 
+forgix {
+    group = "$project.maven_group.$project.mod_id"
+    // forgix does not append .jar extension for some reason
+    mergedJarName = "${project.archives_name}-${project.version}.jar"
+    outputDir = "build/libs/merged"
+
+//    removeDuplicate "$project.maven_group.$project.mod_id"
+}
+
 allprojects {
-    version = "${project.mod_version}+${project.minecraft_version}"
+    version = rootProject.version
     group = project.maven_group
 }
 
 subprojects {
     apply plugin: 'dev.architectury.loom'
     apply plugin: 'architectury-plugin'
-    apply plugin: 'maven-publish'
 
     base {
-        // Set up a suffixed format for the mod jar names, e.g. `example-fabric`.
         archivesName = "$rootProject.archives_name-$project.name"
     }
+
+    build.finalizedBy(mergeJars)
+    assemble.finalizedBy(mergeJars)
 
     repositories {
         // Add repositories to retrieve artifacts from in here.
