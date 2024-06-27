@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import it.unimi.dsi.fastutil.Pair;
-import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.MinecraftServer;
@@ -22,9 +21,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class SkinRestorer implements DedicatedServerModInitializer {
+public class SkinRestorer {
     
     private static SkinStorage skinStorage;
+    
+    public static final String MOD_ID = "skinrestorer";
     
     public static final Logger LOGGER = LoggerFactory.getLogger("SkinRestorer");
     
@@ -32,8 +33,7 @@ public class SkinRestorer implements DedicatedServerModInitializer {
         return skinStorage;
     }
     
-    @Override
-    public void onInitializeServer() {
+    public static void onInitialize() {
         skinStorage = new SkinStorage(new SkinIO(FabricLoader.getInstance().getConfigDir().resolve("skinrestorer")));
     }
     

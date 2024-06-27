@@ -16,7 +16,7 @@
     "environment": "server",
     "entrypoints": {
         "server": [
-            "net.lionarius.skinrestorer.SkinRestorer"
+            "net.lionarius.skinrestorer.fabric.SkinRestorer"
         ]
     },
     "mixins": [
@@ -24,6 +24,6 @@
     ],
     "depends": {
         "fabricloader": ">=0.15.10",
-        "minecraft": "*"
+        "minecraft": ">=1.21"
     }
 }

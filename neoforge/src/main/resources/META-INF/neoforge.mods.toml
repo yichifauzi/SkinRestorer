@@ -1,0 +1,31 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+issueTrackerURL = "https://github.com/Suiranoil/SkinRestorer/issues"
+license = "MIT"
+
+[[mods]]
+modId = "skinrestorer"
+version = "${version}"
+displayName = "Skin Restorer"
+authors = "Lionarius"
+displayURL = "https://modrinth.com/mod/skinrestorer"
+description = '''
+A server-side mod for restoring skins on offline servers.
+'''
+
+[[dependencies.skinrestorer]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.0,)"
+ordering = "NONE"
+side = "SERVER"
+
+[[dependencies.skinrestorer]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21,)"
+ordering = "NONE"
+side = "SERVER"
+
+[[mixins]]
+config = "skinrestorer.mixins.json"
