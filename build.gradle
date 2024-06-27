@@ -1,41 +1,134 @@
 plugins {
-	id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id "com.modrinth.minotaur" version "2.+"
+    id 'net.darkhax.curseforgegradle' version '1.1.15'
 }
 
-archivesBaseName = project.archives_base_name
 version = "${project.mod_version}+${project.minecraft_version}"
 group = project.maven_group
 
-repositories {
-	maven { url = "https://masa.dy.fi/maven" }
-}
+ext.version_name = "${project.capitalized_name} ${project.mod_version}"
+ext.headTag = "git describe --tags --abbrev=0 HEAD".execute([], rootProject.projectDir).text.trim()
+ext.previousTag = "git describe --tags --abbrev=0 HEAD^".execute([], rootProject.projectDir).text.trim()
 
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 }
 
 processResources {
-	inputs.property "version", project.version
+    inputs.property "version", project.version
 
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.encoding = "UTF-8"
+    it.options.encoding = "UTF-8"
 
-	it.options.release.set(21)
+    it.options.release.set(21)
 }
 
 java {
-	withSourcesJar()
+    withSourcesJar()
 }
 
 jar {
-	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}"}
-	}
+    from "LICENSE"
 }
+
+// Adapted from https://raw.githubusercontent.com/TerraformersMC/GradleScripts/2.7/ferry.gradle
+tasks.register('generateChangelog') {
+    ext.changelog = ""
+
+    def lastTag = previousTag
+    def currentTag = headTag
+
+    def changes = new StringBuilder()
+    def commits = "git log --max-count=${project.changelog_max_commit_search} --pretty=format:\"%b\" $lastTag..$currentTag".execute()
+    commits.in.eachLine { line -> // Loops over the lines the git log command returns
+        def processedLine = line.toString()
+        if (processedLine.startsWith("\"")) {
+            processedLine = processedLine.substring(1)
+        }
+        if (processedLine.endsWith("\"")) {
+            processedLine = processedLine.substring(0, processedLine.length() - 1)
+        }
+        if (processedLine.startsWith("- ")) {
+            if (changes.length() == 0) {
+                changes << processedLine
+            } else {
+                changes << "\n$processedLine"
+            }
+        }
+    }
+    commits.err.eachLine { line -> println line }
+    commits.waitFor()
+
+    ext.changelog = changes.toString()
+    if (ext.changelog.isEmpty()) {
+        ext.changelog = "No Changelog Available"
+    }
+}
+
+tasks.register('assertNewVersion') {
+    if (headTag == previousTag) {
+        throw new GradleException("Current version $headTag is the same as previous. Please create a new version tag if you want to proceed.")
+    }
+}
+
+tasks.register('publish') {
+    group = 'publishing'
+    dependsOn 'assertNewVersion'
+    dependsOn 'generateChangelog'
+    dependsOn 'modrinth'
+//    dependsOn 'curseforge'
+    doFirst {
+        println "Last version: $previousTag"
+        println "Current version: $headTag"
+        println "Changelog:"
+        println generateChangelog.changelog
+    }
+}
+
+modrinth {
+    token = System.getenv('MODRINTH_TOKEN')
+    projectId = project.modrinth_id
+    versionName = version_name
+    versionType = "release"
+    changelog = generateChangelog.changelog
+    uploadFile = remapJar
+    project.modrinth_game_versions.split(',').each {
+        gameVersions.add(it.trim())
+    }
+    project.modrinth_mod_loaders.split(',').each {
+        loaders.add(it.trim())
+    }
+}
+
+tasks.modrinth.dependsOn('assertNewVersion')
+
+// cannot test it, returns 403 Forbidden. disabled for now
+//import net.darkhax.curseforgegradle.TaskPublishCurseForge
+//task curseforge(type: TaskPublishCurseForge) {
+//    group = 'publishing'
+//
+//    disableVersionDetection()
+//
+//    apiToken = System.getenv("CURSEFORGE_TOKEN")
+//
+//    def mainFile = upload(project.curseforge_id, remapJar)
+//    mainFile.releaseType = 'release'
+//    mainFile.changelog = generateChangelog.changelog
+//    mainFile.changelogType = 'markdown'
+//    project.curseforge_game_versions.split(',').each {
+//        mainFile.addGameVersion(it.trim())
+//    }
+//    project.curseforge_mod_loaders.split(',').each {
+//        mainFile.addModLoader(it.trim())
+//    }
+//}
+//
+// tasks.curseforge.dependsOn('assertNewVersion')
