@@ -1,10 +1,9 @@
 # SkinRestorer
 
-![GitHub License](https://img.shields.io/github/license/Suiranoil/SkinRestorer)
-![Build](https://github.com/Suiranoil/SkinRestorer/actions/workflows/build.yml/badge.svg)
+![a](https://cf.way2muchnoise.eu/versions/skinrestorer.svg)
 ![Enviroment](https://img.shields.io/badge/enviroment-server-orangered)
 [![CurseForge Downloads](https://cf.way2muchnoise.eu/skinrestorer.svg)](https://www.curseforge.com/minecraft/mc-mods/skinrestorer)
-[![Modrinth Downloads](https://img.shields.io/modrinth/dt/skinrestorer?logo=modrinth)](https://modrinth.com/mod/skinrestorer)
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/skinrestorer?logo=modrinth&label=&suffix=%20&style=flat&color=242629&labelColor=5ca424&logoColor=1c1c1c)](https://modrinth.com/mod/skinrestorer)
 
 SkinRestorer is a **server-side** only mod for Fabric that allows players to use and change skins on servers running in
 offline/insecure mode.
