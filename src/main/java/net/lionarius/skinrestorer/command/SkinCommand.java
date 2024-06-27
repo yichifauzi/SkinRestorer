@@ -22,7 +22,7 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class SkinCommand {
-
+    
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(literal("skin")
                 .then(literal("set")
@@ -63,22 +63,22 @@ public class SkinCommand {
                                         SkinResult::empty))))
         );
     }
-
+    
     private static int skinAction(ServerCommandSource src, Collection<GameProfile> targets, boolean setByOperator, Supplier<SkinResult> skinSupplier) {
         SkinRestorer.setSkinAsync(src.getServer(), targets, skinSupplier).thenAccept(pair -> {
             Collection<GameProfile> profiles = pair.right();
             Collection<ServerPlayerEntity> players = pair.left();
-
+            
             if (profiles.isEmpty()) {
                 src.sendError(Text.of(TranslationUtils.translation.skinActionFailed));
                 return;
             }
-
+            
             if (setByOperator) {
                 src.sendFeedback(() -> Text.of(
                         String.format(TranslationUtils.translation.skinActionAffectedProfile,
                                 String.join(", ", profiles.stream().map(GameProfile::getName).toList()))), true);
-
+                
                 if (!players.isEmpty()) {
                     src.sendFeedback(() -> Text.of(
                             String.format(TranslationUtils.translation.skinActionAffectedPlayer,
@@ -90,11 +90,11 @@ public class SkinCommand {
         });
         return targets.size();
     }
-
+    
     private static int skinAction(ServerCommandSource src, Supplier<SkinResult> skinSupplier) {
         if (src.getPlayer() == null)
             return 0;
-
+        
         return skinAction(src, Collections.singleton(src.getPlayer().getGameProfile()), false, skinSupplier);
     }
 }

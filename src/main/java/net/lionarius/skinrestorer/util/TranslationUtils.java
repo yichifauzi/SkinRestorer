@@ -14,12 +14,12 @@ public class TranslationUtils {
         public String skinActionFailed = "Failed to set skin";
         public String skinActionOk = "Skin changed";
     }
-
+    
     public static Translation translation = new Translation();
-
+    
     static {
         Path path = FabricLoader.getInstance().getConfigDir().resolve("skinrestorer").resolve("translation.json");
-
+        
         if (Files.exists(path)) {
             try {
                 translation = JsonUtils.fromJson(Objects.requireNonNull(FileUtils.readFile(path.toFile())), Translation.class);

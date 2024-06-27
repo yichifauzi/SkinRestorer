@@ -17,30 +17,32 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
-
+    
     @Shadow @Nullable
     private GameProfile profile;
-
+    
     @Unique
     private CompletableFuture<SkinResult> skinrestorer_pendingSkin;
-
-    @Inject(method = "tickVerify", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;checkCanJoin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/text/Text;"), cancellable = true)
+    
+    @Inject(method = "tickVerify", at = @At(value = "INVOKE",
+                                            target = "Lnet/minecraft/server/PlayerManager;checkCanJoin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/text/Text;"),
+            cancellable = true)
     public void waitForSkin(CallbackInfo ci) {
         if (skinrestorer_pendingSkin == null) {
             skinrestorer_pendingSkin = CompletableFuture.supplyAsync(() -> {
                 SkinRestorer.LOGGER.debug("Fetching {}'s skin", profile.getName());
-
+                
                 if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId())) { // when player joins for the first time fetch Mojang skin by his username
                     SkinResult result = MojangSkinProvider.getSkin(profile.getName());
-
+                    
                     if (!result.isError())
                         SkinRestorer.getSkinStorage().setSkin(profile.getId(), result.getSkin());
                 }
-
+                
                 return SkinResult.ofNullable(SkinRestorer.getSkinStorage().getSkin(profile.getId()));
             });
         }
-
+        
         if (!skinrestorer_pendingSkin.isDone())
             ci.cancel();
     }

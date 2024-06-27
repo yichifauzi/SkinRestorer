@@ -1,29 +1,29 @@
 {
-  "schemaVersion": 1,
-  "id": "skinrestorer",
-  "version": "${version}",
-  "name": "Skin Restorer",
-  "description": "A server-side mod for restoring skins on offline servers.",
-  "authors": [
-    "Lionarius"
-  ],
-  "contact": {
-    "homepage": "https://modrinth.com/mod/skinrestorer",
-    "sources": "https://github.com/Suiranoil/SkinRestorer",
-    "issues": "https://github.com/Suiranoil/SkinRestorer/issues"
-  },
-  "license": "MIT",
-  "environment": "server",
-  "entrypoints": {
-    "server": [
-      "net.lionarius.skinrestorer.SkinRestorer"
-    ]
-  },
-  "mixins": [
-    "skinrestorer.mixins.json"
-  ],
-  "depends": {
-    "fabricloader": ">=0.15.10",
-    "minecraft": "*"
-  }
+    "schemaVersion": 1,
+    "id": "skinrestorer",
+    "version": "${version}",
+    "name": "Skin Restorer",
+    "description": "A server-side mod for restoring skins on offline servers.",
+    "authors": [
+        "Lionarius"
+    ],
+    "contact": {
+        "homepage": "https://modrinth.com/mod/skinrestorer",
+        "sources": "https://github.com/Suiranoil/SkinRestorer",
+        "issues": "https://github.com/Suiranoil/SkinRestorer/issues"
+    },
+    "license": "MIT",
+    "environment": "server",
+    "entrypoints": {
+        "server": [
+            "net.lionarius.skinrestorer.SkinRestorer"
+        ]
+    },
+    "mixins": [
+        "skinrestorer.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=0.15.10",
+        "minecraft": "*"
+    }
 }

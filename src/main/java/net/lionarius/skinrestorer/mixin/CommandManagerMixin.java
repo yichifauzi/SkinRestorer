@@ -14,11 +14,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(CommandManager.class)
 public abstract class CommandManagerMixin {
-
+    
     @Final @Shadow
     private CommandDispatcher<ServerCommandSource> dispatcher;
-
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/AdvancementCommand;register(Lcom/mojang/brigadier/CommandDispatcher;)V"))
+    
+    @Inject(method = "<init>", at = @At(value = "INVOKE",
+                                        target = "Lnet/minecraft/server/command/AdvancementCommand;register(Lcom/mojang/brigadier/CommandDispatcher;)V"))
     private void init(CommandManager.RegistrationEnvironment environment, CommandRegistryAccess commandRegistryAccess, CallbackInfo ci) {
         SkinCommand.register(dispatcher);
     }
