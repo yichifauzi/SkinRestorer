@@ -111,7 +111,10 @@ public class SkinRestorer {
                     return Pair.of(acceptedPlayers, acceptedProfiles);
                 }, server)
                 .orTimeout(10, TimeUnit.SECONDS)
-                .exceptionally(e -> Pair.of(Collections.emptySet(), Collections.emptySet()));
+                .exceptionally(e -> {
+                    SkinRestorer.LOGGER.error(String.valueOf(e));
+                    return Pair.of(Collections.emptySet(), Collections.emptySet());
+                });
     }
     
     public static void applyRestoredSkin(GameProfile profile, Property skin) {
