@@ -58,14 +58,14 @@ public class SkinRestorer {
         if (!player.isDead()) {
             chunkManager.unloadEntity(player);
             chunkManager.loadEntity(player);
-            player.networkHandler.sendPacket(new BundleS2CPacket(
+            player.networkHandler.send(new BundleS2CPacket(
                     List.of(
                             new PlayerRespawnS2CPacket(player.createCommonPlayerSpawnInfo(serverWorld), PlayerRespawnS2CPacket.KEEP_ALL),
                             new GameStateChangeS2CPacket(GameStateChangeS2CPacket.INITIAL_CHUNKS_COMING, 0)
                     )
-            ));
+            ), null);
             player.networkHandler.requestTeleport(player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
-            player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
+            player.networkHandler.send(new EntityVelocityUpdateS2CPacket(player), null);
             player.sendAbilitiesUpdate();
             player.addExperience(0);
             playerManager.sendCommandTree(player);
