@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import it.unimi.dsi.fastutil.Pair;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
@@ -16,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 public class SkinRestorer {
     
     private static SkinStorage skinStorage;
+    private static Path configDir;
     
     public static final String MOD_ID = "skinrestorer";
     
@@ -33,8 +34,13 @@ public class SkinRestorer {
         return skinStorage;
     }
     
-    public static void onInitialize() {
-        skinStorage = new SkinStorage(new SkinIO(FabricLoader.getInstance().getConfigDir().resolve("skinrestorer")));
+    public static Path getConfigDir() {
+        return configDir;
+    }
+    
+    public static void onInitialize(Path rootConfigDir) {
+        SkinRestorer.configDir = rootConfigDir.resolve(MOD_ID);
+        SkinRestorer.skinStorage = new SkinStorage(new SkinIO(SkinRestorer.configDir));
     }
     
     public static void refreshPlayer(ServerPlayerEntity player) {

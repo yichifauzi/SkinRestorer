@@ -16,7 +16,7 @@ A server-side mod for restoring skins on offline servers.
 [[dependencies.skinrestorer]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.0,)"
+versionRange = "[21.0.0-beta,)"
 ordering = "NONE"
 side = "SERVER"
 

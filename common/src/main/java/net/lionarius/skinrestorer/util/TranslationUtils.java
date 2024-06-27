@@ -1,6 +1,5 @@
 package net.lionarius.skinrestorer.util;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.lionarius.skinrestorer.SkinRestorer;
 
 import java.nio.file.Files;
@@ -18,7 +17,7 @@ public class TranslationUtils {
     public static Translation translation = new Translation();
     
     static {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve("skinrestorer").resolve("translation.json");
+        Path path = SkinRestorer.getConfigDir().resolve("translation.json");
         
         if (Files.exists(path)) {
             try {
