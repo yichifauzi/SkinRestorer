@@ -1,4 +1,4 @@
-package net.lionarius.skinrestorer;
+package net.lionarius.skinrestorer.skin;
 
 import com.mojang.authlib.properties.Property;
 import org.jetbrains.annotations.NotNull;

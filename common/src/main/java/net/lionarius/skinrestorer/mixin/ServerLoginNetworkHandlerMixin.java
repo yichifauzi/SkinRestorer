@@ -1,9 +1,9 @@
 package net.lionarius.skinrestorer.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.lionarius.skinrestorer.MojangSkinProvider;
+import net.lionarius.skinrestorer.skin.provider.MojangSkinProvider;
 import net.lionarius.skinrestorer.SkinRestorer;
-import net.lionarius.skinrestorer.SkinResult;
+import net.lionarius.skinrestorer.skin.SkinResult;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;

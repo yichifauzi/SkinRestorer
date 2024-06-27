@@ -1,8 +1,9 @@
-package net.lionarius.skinrestorer;
+package net.lionarius.skinrestorer.skin.provider;
 
 import com.google.gson.JsonObject;
 import com.mojang.authlib.properties.Property;
-import net.lionarius.skinrestorer.enums.SkinVariant;
+import net.lionarius.skinrestorer.skin.SkinVariant;
+import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.util.JsonUtils;
 import net.lionarius.skinrestorer.util.WebUtils;
 

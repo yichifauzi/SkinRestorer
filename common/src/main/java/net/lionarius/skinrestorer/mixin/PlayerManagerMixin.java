@@ -1,7 +1,7 @@
 package net.lionarius.skinrestorer.mixin;
 
 import net.lionarius.skinrestorer.SkinRestorer;
-import net.lionarius.skinrestorer.SkinResult;
+import net.lionarius.skinrestorer.skin.SkinResult;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;

@@ -1,4 +1,4 @@
-package net.lionarius.skinrestorer.enums;
+package net.lionarius.skinrestorer.skin;
 
 public enum SkinVariant {
     

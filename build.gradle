@@ -21,8 +21,6 @@ forgix {
     // forgix does not append .jar extension for some reason
     mergedJarName = "${project.archives_name}-${project.version}.jar"
     outputDir = "build/libs/merged"
-
-//    removeDuplicate "$project.maven_group.$project.mod_id"
 }
 
 allprojects {
