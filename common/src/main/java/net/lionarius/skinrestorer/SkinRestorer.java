@@ -6,6 +6,9 @@ import it.unimi.dsi.fastutil.Pair;
 import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinStorage;
+import net.lionarius.skinrestorer.skin.provider.MineskinSkinProvider;
+import net.lionarius.skinrestorer.skin.provider.MojangSkinProvider;
+import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,9 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -24,6 +25,7 @@ public final class SkinRestorer {
     public static final String MOD_ID = "skinrestorer";
     public static final Logger LOGGER = LoggerFactory.getLogger("SkinRestorer");
     
+    private static Map<String, SkinProvider> providers = new HashMap<>();
     private static SkinStorage skinStorage;
     private static Path configDir;
     
@@ -35,9 +37,20 @@ public final class SkinRestorer {
         return configDir;
     }
     
+    public static Iterable<Map.Entry<String, SkinProvider>> getProviders() {
+        return providers.entrySet();
+    }
+    
+    public static Optional<SkinProvider> getProvider(String name) {
+        return Optional.ofNullable(providers.get(name));
+    }
+    
     public static void onInitialize(Path rootConfigDir) {
         SkinRestorer.configDir = rootConfigDir.resolve(MOD_ID);
         SkinRestorer.skinStorage = new SkinStorage(new SkinIO(SkinRestorer.configDir));
+        
+        SkinRestorer.providers.put("mojang", new MojangSkinProvider());
+        SkinRestorer.providers.put("web", new MineskinSkinProvider());
     }
     
     public static CompletableFuture<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<SkinResult> skinSupplier) {

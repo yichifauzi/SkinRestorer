@@ -1,9 +1,9 @@
 package net.lionarius.skinrestorer.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.lionarius.skinrestorer.skin.provider.MojangSkinProvider;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.skin.SkinResult;
+import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,7 +33,9 @@ public abstract class ServerLoginNetworkHandlerMixin {
                 SkinRestorer.LOGGER.debug("Fetching {}'s skin", profile.getName());
                 
                 if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId())) { // when player joins for the first time fetch Mojang skin by his username
-                    SkinResult result = MojangSkinProvider.getSkin(profile.getName());
+                    SkinResult result = SkinRestorer.getProvider("mojang").map(
+                            provider -> provider.getSkin(profile.getName(), SkinVariant.CLASSIC)
+                    ).orElse(SkinResult.empty());
                     
                     if (!result.isError())
                         SkinRestorer.getSkinStorage().setSkin(profile.getId(), result.getSkin());

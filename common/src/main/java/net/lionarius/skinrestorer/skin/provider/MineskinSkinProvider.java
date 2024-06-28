@@ -11,13 +11,24 @@ import net.lionarius.skinrestorer.util.WebUtils;
 import java.io.IOException;
 import java.net.URL;
 
-public class MineskinSkinProvider {
+public class MineskinSkinProvider implements SkinProvider {
     
     private static final String API = "https://api.mineskin.org/generate/url";
     private static final String USER_AGENT = "SkinRestorer";
     private static final String TYPE = "application/json";
     
-    public static SkinResult getSkin(String url, SkinVariant variant) {
+    @Override
+    public String getArgumentName() {
+        return "url";
+    }
+    
+    @Override
+    public boolean hasVariantSupport() {
+        return true;
+    }
+    
+    @Override
+    public SkinResult getSkin(String url, SkinVariant variant) {
         try {
             String input = ("{\"variant\":\"%s\",\"name\":\"%s\",\"visibility\":%d,\"url\":\"%s\"}")
                     .formatted(variant.toString(), "none", 1, url);

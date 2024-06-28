@@ -3,6 +3,7 @@ package net.lionarius.skinrestorer.skin.provider;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.skin.SkinResult;
+import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.util.JsonUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.WebUtils;
@@ -11,12 +12,23 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.UUID;
 
-public class MojangSkinProvider {
+public class MojangSkinProvider implements SkinProvider {
     
     private static final String API = "https://api.mojang.com/users/profiles/minecraft/";
     private static final String SESSION_SERVER = "https://sessionserver.mojang.com/session/minecraft/profile/";
     
-    public static SkinResult getSkin(String name) {
+    @Override
+    public String getArgumentName() {
+        return "skin_name";
+    }
+    
+    @Override
+    public boolean hasVariantSupport() {
+        return false;
+    }
+    
+    @Override
+    public SkinResult getSkin(String name, SkinVariant variant) {
         try {
             UUID uuid = getUUID(name);
             JsonObject texture = JsonUtils.parseJson(WebUtils.GETRequest(new URL(SESSION_SERVER + uuid + "?unsigned=false")))
