@@ -31,6 +31,8 @@ public final class SkinRestorer {
     private static SkinStorage skinStorage;
     private static Path configDir;
     
+    private SkinRestorer() {}
+    
     public static SkinStorage getSkinStorage() {
         return SkinRestorer.skinStorage;
     }

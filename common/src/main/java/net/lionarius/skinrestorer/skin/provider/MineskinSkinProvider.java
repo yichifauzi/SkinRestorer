@@ -9,13 +9,20 @@ import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.WebUtils;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public final class MineskinSkinProvider implements SkinProvider {
     
-    private static final String API = "https://api.mineskin.org/generate/url";
-    private static final String USER_AGENT = "SkinRestorer";
-    private static final String TYPE = "application/json";
+    private static final URI API_URL;
+    
+    static {
+        try {
+            API_URL = new URI("https://api.mineskin.org/generate/url");
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
     
     @Override
     public String getArgumentName() {
@@ -30,10 +37,10 @@ public final class MineskinSkinProvider implements SkinProvider {
     @Override
     public SkinResult getSkin(String url, SkinVariant variant) {
         try {
-            String input = ("{\"variant\":\"%s\",\"name\":\"%s\",\"visibility\":%d,\"url\":\"%s\"}")
+            String body = ("{\"variant\":\"%s\",\"name\":\"%s\",\"visibility\":%d,\"url\":\"%s\"}")
                     .formatted(variant.toString(), "none", 1, url);
             
-            JsonObject texture = JsonUtils.parseJson(WebUtils.postRequest(new URL(API), USER_AGENT, TYPE, TYPE, input))
+            JsonObject texture = JsonUtils.parseJson(WebUtils.postRequest(API_URL.toURL(), "application/json", body))
                     .getAsJsonObject("data").getAsJsonObject("texture");
             
             return SkinResult.success(new Property(PlayerUtils.TEXTURES_KEY, texture.get("value").getAsString(), texture.get("signature").getAsString()));

@@ -14,9 +14,9 @@ import java.util.List;
 
 public final class PlayerUtils {
     
-    private PlayerUtils() {}
-    
     public static final String TEXTURES_KEY = "textures";
+    
+    private PlayerUtils() {}
     
     public static boolean isFakePlayer(ServerPlayerEntity player) {
         return player.getClass() != ServerPlayerEntity.class; // if the player isn't a server player entity, it must be someone's fake player

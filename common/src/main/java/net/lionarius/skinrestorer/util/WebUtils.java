@@ -12,19 +12,20 @@ public final class WebUtils {
     
     private WebUtils() {}
     
-    public static String postRequest(URL url, String userAgent, String contentType, String responseType, String input)
+    public static final String USER_AGENT = "SkinRestorer";
+    
+    public static String postRequest(URL url, String contentType, String body)
             throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", contentType);
-        connection.setRequestProperty("Accept", responseType);
-        connection.setRequestProperty("User-Agent", userAgent);
+        connection.setRequestProperty("User-Agent", WebUtils.USER_AGENT);
         connection.setDoOutput(true);
         connection.setDoInput(true);
         
         try (OutputStream os = connection.getOutputStream()) {
-            os.write(input.getBytes(StandardCharsets.UTF_8), 0, input.length());
+            os.write(body.getBytes(StandardCharsets.UTF_8), 0, body.length());
         }
         
         try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {

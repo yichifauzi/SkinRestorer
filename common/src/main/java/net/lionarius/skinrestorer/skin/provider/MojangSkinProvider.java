@@ -9,13 +9,24 @@ import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.WebUtils;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 public final class MojangSkinProvider implements SkinProvider {
     
-    private static final String API = "https://api.mojang.com/users/profiles/minecraft/";
-    private static final String SESSION_SERVER = "https://sessionserver.mojang.com/session/minecraft/profile/";
+    private static final URI API_URL;
+    private static final URI SESSION_SERVER_URL;
+    
+    static {
+        try {
+            API_URL = new URI("https://api.mojang.com/users/profiles/minecraft/");
+            SESSION_SERVER_URL = new URI("https://sessionserver.mojang.com/session/minecraft/profile/");
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+    
     
     @Override
     public String getArgumentName() {
@@ -31,7 +42,7 @@ public final class MojangSkinProvider implements SkinProvider {
     public SkinResult getSkin(String username, SkinVariant variant) {
         try {
             UUID uuid = getUUID(username);
-            JsonObject texture = JsonUtils.parseJson(WebUtils.getRequest(new URL(SESSION_SERVER + uuid + "?unsigned=false")))
+            JsonObject texture = JsonUtils.parseJson(WebUtils.getRequest(SESSION_SERVER_URL.resolve(uuid + "?unsigned=false").toURL()))
                     .getAsJsonArray("properties").get(0).getAsJsonObject();
             
             return SkinResult.success(new Property(PlayerUtils.TEXTURES_KEY, texture.get("value").getAsString(), texture.get("signature").getAsString()));
@@ -41,7 +52,7 @@ public final class MojangSkinProvider implements SkinProvider {
     }
     
     private static UUID getUUID(String name) throws IOException {
-        return UUID.fromString(JsonUtils.parseJson(WebUtils.getRequest(new URL(API + name))).get("id").getAsString()
+        return UUID.fromString(JsonUtils.parseJson(WebUtils.getRequest(API_URL.resolve(name).toURL())).get("id").getAsString()
                 .replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"));
     }
 }

@@ -11,9 +11,9 @@ import java.util.Base64;
 
 public final class JsonUtils {
     
-    private JsonUtils() {}
-    
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    
+    private JsonUtils() {}
     
     public static <T> T fromJson(String json, Class<T> clazz) {
         return GSON.fromJson(json, clazz);
