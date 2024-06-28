@@ -8,6 +8,7 @@ modId = "skinrestorer"
 version = "${version}"
 displayName = "Skin Restorer"
 authors = "Lionarius"
+logoFile = "assets/skinrestorer/icon.png"
 displayURL = "https://modrinth.com/mod/skinrestorer"
 description = '''
 A server-side mod for restoring skins on offline servers.
@@ -18,14 +19,14 @@ modId = "neoforge"
 type = "required"
 versionRange = "[21.0.0-beta,)"
 ordering = "NONE"
-side = "SERVER"
+side = "BOTH"
 
 [[dependencies.skinrestorer]]
 modId = "minecraft"
 type = "required"
 versionRange = "[1.21,)"
 ordering = "NONE"
-side = "SERVER"
+side = "BOTH"
 
 [[mixins]]
 config = "skinrestorer-common.mixins.json"

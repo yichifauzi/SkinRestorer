@@ -12,6 +12,7 @@
         "sources": "https://github.com/Suiranoil/SkinRestorer",
         "issues": "https://github.com/Suiranoil/SkinRestorer/issues"
     },
+    "icon": "assets/skinrestorer/icon.png",
     "license": "MIT",
     "environment": "*",
     "entrypoints": {
