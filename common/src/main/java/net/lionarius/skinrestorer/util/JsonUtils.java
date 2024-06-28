@@ -9,7 +9,9 @@ import com.mojang.authlib.properties.Property;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-public class JsonUtils {
+public final class JsonUtils {
+    
+    private JsonUtils() {}
     
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     

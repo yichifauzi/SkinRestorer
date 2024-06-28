@@ -12,7 +12,9 @@ import net.minecraft.server.world.ServerWorld;
 import java.util.Collections;
 import java.util.List;
 
-public class PlayerUtils {
+public final class PlayerUtils {
+    
+    private PlayerUtils() {}
     
     public static final String TEXTURES_KEY = "textures";
     

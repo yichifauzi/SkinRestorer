@@ -26,7 +26,9 @@ import java.util.function.Supplier;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
-public class SkinCommand {
+public final class SkinCommand {
+    
+    private SkinCommand() {}
     
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         LiteralArgumentBuilder<ServerCommandSource> base =

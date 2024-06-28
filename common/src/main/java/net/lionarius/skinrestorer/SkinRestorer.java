@@ -32,30 +32,30 @@ public final class SkinRestorer {
     private static Path configDir;
     
     public static SkinStorage getSkinStorage() {
-        return skinStorage;
+        return SkinRestorer.skinStorage;
     }
     
     public static Path getConfigDir() {
-        return configDir;
+        return SkinRestorer.configDir;
     }
     
     public static Iterable<Map.Entry<String, SkinProvider>> getProviders() {
-        return providers.entrySet();
+        return SkinRestorer.providers.entrySet();
     }
     
     public static Optional<SkinProvider> getProvider(String name) {
-        return Optional.ofNullable(providers.get(name));
+        return Optional.ofNullable(SkinRestorer.providers.get(name));
     }
     
     public static void onInitialize(Path rootConfigDir) {
-        SkinRestorer.configDir = rootConfigDir.resolve(MOD_ID);
+        SkinRestorer.configDir = rootConfigDir.resolve(SkinRestorer.MOD_ID);
         
         SkinRestorer.providers.put("mojang", new MojangSkinProvider());
         SkinRestorer.providers.put("web", new MineskinSkinProvider());
     }
     
     public static void onServerStarted(MinecraftServer server) {
-        Path worldSkinDirectory = server.getSavePath(WorldSavePath.ROOT).resolve(MOD_ID);
+        Path worldSkinDirectory = server.getSavePath(WorldSavePath.ROOT).resolve(SkinRestorer.MOD_ID);
         FileUtils.tryMigrateOldSkinDirectory(worldSkinDirectory);
         
         SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldSkinDirectory));

@@ -7,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
-public class TranslationUtils {
+public final class TranslationUtils {
     public static class Translation {
         public String skinActionAffectedProfile = "Skin has been saved for %s";
         public String skinActionAffectedPlayer = "Apply live skin changes for %s";
@@ -17,6 +17,8 @@ public class TranslationUtils {
     
     public static final String TRANSLATION_FILENAME = "translation";
     private static Translation translation = new Translation();
+    
+    private TranslationUtils() {}
     
     public static Translation getTranslation() {
         return translation;

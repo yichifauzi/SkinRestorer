@@ -8,9 +8,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public class WebUtils {
+public final class WebUtils {
     
-    public static String POSTRequest(URL url, String userAgent, String contentType, String responseType, String input)
+    private WebUtils() {}
+    
+    public static String postRequest(URL url, String userAgent, String contentType, String responseType, String input)
             throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         
@@ -30,7 +32,7 @@ public class WebUtils {
         }
     }
     
-    public static String GETRequest(URL url) throws IOException {
+    public static String getRequest(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         
         connection.setRequestMethod("GET");
