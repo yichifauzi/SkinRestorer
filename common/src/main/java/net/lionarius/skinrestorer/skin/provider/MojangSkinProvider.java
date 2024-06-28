@@ -19,7 +19,7 @@ public class MojangSkinProvider implements SkinProvider {
     
     @Override
     public String getArgumentName() {
-        return "skin_name";
+        return "username";
     }
     
     @Override
@@ -28,9 +28,9 @@ public class MojangSkinProvider implements SkinProvider {
     }
     
     @Override
-    public SkinResult getSkin(String name, SkinVariant variant) {
+    public SkinResult getSkin(String username, SkinVariant variant) {
         try {
-            UUID uuid = getUUID(name);
+            UUID uuid = getUUID(username);
             JsonObject texture = JsonUtils.parseJson(WebUtils.GETRequest(new URL(SESSION_SERVER + uuid + "?unsigned=false")))
                     .getAsJsonArray("properties").get(0).getAsJsonObject();
             

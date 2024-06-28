@@ -18,11 +18,11 @@ offline/insecure mode.
 ### Set Mojang Skin
 
 ```
-/skin set mojang <skin_name> [<targets>]
+/skin set mojang <username> [<targets>]
 ```
 
 - **Parameters:**
-    - `<skin_name>`: Minecraft account name to fetch the skin from.
+    - `<username>`: Minecraft account name to fetch the skin from.
     - `[<targets>]`: (Optional, server operators only) Player(s) to apply the skin to.
 
 ### Set Web Skin
