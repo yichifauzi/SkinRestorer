@@ -4,7 +4,7 @@
     "package": "net.lionarius.skinrestorer.fabric.mixin",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
-        "CommandManagerMixin",
+        "CommandsMixin",
         "MinecraftServerMixin"
     ],
     "injectors": {

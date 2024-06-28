@@ -12,8 +12,8 @@ import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,13 +57,13 @@ public final class SkinRestorer {
     }
     
     public static void onServerStarted(MinecraftServer server) {
-        Path worldSkinDirectory = server.getSavePath(WorldSavePath.ROOT).resolve(SkinRestorer.MOD_ID);
+        Path worldSkinDirectory = server.getWorldPath(LevelResource.ROOT).resolve(SkinRestorer.MOD_ID);
         FileUtils.tryMigrateOldSkinDirectory(worldSkinDirectory);
         
         SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldSkinDirectory));
     }
     
-    public static CompletableFuture<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<SkinResult> skinSupplier) {
+    public static CompletableFuture<Pair<Collection<ServerPlayer>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<SkinResult> skinSupplier) {
         return CompletableFuture.<Pair<Property, Collection<GameProfile>>>supplyAsync(() -> {
                     SkinResult result = skinSupplier.get();
                     if (result.isError()) {
@@ -80,14 +80,14 @@ public final class SkinRestorer {
                     HashSet<GameProfile> acceptedProfiles = new HashSet<>(targets);
                     
                     return Pair.of(skin, acceptedProfiles);
-                }).<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>>thenApplyAsync(pair -> {
+                }).<Pair<Collection<ServerPlayer>, Collection<GameProfile>>>thenApplyAsync(pair -> {
                     Property skin = pair.left(); // NullPtrException will be caught by 'exceptionally'
                     
                     Collection<GameProfile> acceptedProfiles = pair.right();
-                    HashSet<ServerPlayerEntity> acceptedPlayers = new HashSet<>();
+                    HashSet<ServerPlayer> acceptedPlayers = new HashSet<>();
                     
                     for (GameProfile profile : acceptedProfiles) {
-                        ServerPlayerEntity player = server.getPlayerManager().getPlayer(profile.getId());
+                        ServerPlayer player = server.getPlayerList().getPlayer(profile.getId());
                         
                         if (player == null || PlayerUtils.areSkinPropertiesEquals(skin, PlayerUtils.getPlayerSkin(player)))
                             continue;

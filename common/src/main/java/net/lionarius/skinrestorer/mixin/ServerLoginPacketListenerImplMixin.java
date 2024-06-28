@@ -4,7 +4,7 @@ import com.mojang.authlib.GameProfile;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinVariant;
-import net.minecraft.server.network.ServerLoginNetworkHandler;
+import net.minecraft.server.network.ServerLoginPacketListenerImpl;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,34 +15,34 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.CompletableFuture;
 
-@Mixin(ServerLoginNetworkHandler.class)
-public abstract class ServerLoginNetworkHandlerMixin {
+@Mixin(ServerLoginPacketListenerImpl.class)
+public abstract class ServerLoginPacketListenerImplMixin {
     
     @Shadow @Nullable
-    private GameProfile profile;
+    private GameProfile authenticatedProfile;
     
     @Unique
     private CompletableFuture<SkinResult> skinrestorer_pendingSkin;
     
-    @Inject(method = "tickVerify", at = @At(value = "INVOKE",
-                                            target = "Lnet/minecraft/server/PlayerManager;checkCanJoin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/text/Text;"),
+    @Inject(method = "verifyLoginAndFinishConnectionSetup", at = @At(value = "INVOKE",
+                                                                     target = "Lnet/minecraft/server/players/PlayerList;canPlayerLogin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/network/chat/Component;"),
             cancellable = true)
     public void waitForSkin(CallbackInfo ci) {
         if (skinrestorer_pendingSkin == null) {
             skinrestorer_pendingSkin = CompletableFuture.supplyAsync(() -> {
-                assert profile != null;
-                SkinRestorer.LOGGER.debug("Fetching {}'s skin", profile.getName());
+                assert authenticatedProfile != null;
+                SkinRestorer.LOGGER.debug("Fetching {}'s skin", authenticatedProfile.getName());
                 
-                if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId())) { // when player joins for the first time fetch Mojang skin by his username
+                if (!SkinRestorer.getSkinStorage().hasSavedSkin(authenticatedProfile.getId())) { // when player joins for the first time fetch Mojang skin by his username
                     SkinResult result = SkinRestorer.getProvider("mojang").map(
-                            provider -> provider.getSkin(profile.getName(), SkinVariant.CLASSIC)
+                            provider -> provider.getSkin(authenticatedProfile.getName(), SkinVariant.CLASSIC)
                     ).orElse(SkinResult.empty());
                     
                     if (!result.isError())
-                        SkinRestorer.getSkinStorage().setSkin(profile.getId(), result.getSkin());
+                        SkinRestorer.getSkinStorage().setSkin(authenticatedProfile.getId(), result.getSkin());
                 }
                 
-                return SkinResult.ofNullable(SkinRestorer.getSkinStorage().getSkin(profile.getId()));
+                return SkinResult.ofNullable(SkinRestorer.getSkinStorage().getSkin(authenticatedProfile.getId()));
             });
         }
         

@@ -12,10 +12,10 @@ import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.util.TranslationUtils;
-import net.minecraft.command.argument.GameProfileArgumentType;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -23,19 +23,19 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public final class SkinCommand {
     
     private SkinCommand() {}
     
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        LiteralArgumentBuilder<ServerCommandSource> base =
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        LiteralArgumentBuilder<CommandSourceStack> base =
                 literal("skin")
                         .then(buildAction("clear", SkinResult::empty));
         
-        LiteralArgumentBuilder<ServerCommandSource> set = literal("set");
+        LiteralArgumentBuilder<CommandSourceStack> set = literal("set");
         
         for (Map.Entry<String, SkinProvider> entry : SkinRestorer.getProviders()) {
             set.then(buildAction(entry.getKey(), entry.getValue()));
@@ -46,8 +46,8 @@ public final class SkinCommand {
         dispatcher.register(base);
     }
     
-    private static LiteralArgumentBuilder<ServerCommandSource> buildAction(String name, SkinProvider provider) {
-        LiteralArgumentBuilder<ServerCommandSource> action = literal(name);
+    private static LiteralArgumentBuilder<CommandSourceStack> buildAction(String name, SkinProvider provider) {
+        LiteralArgumentBuilder<CommandSourceStack> action = literal(name);
         
         if (provider.hasVariantSupport()) {
             for (SkinVariant variant : SkinVariant.values()) {
@@ -71,13 +71,13 @@ public final class SkinCommand {
         return action;
     }
     
-    private static ArgumentBuilder<ServerCommandSource, LiteralArgumentBuilder<ServerCommandSource>> buildAction(String name, Supplier<SkinResult> supplier) {
+    private static ArgumentBuilder<CommandSourceStack, LiteralArgumentBuilder<CommandSourceStack>> buildAction(String name, Supplier<SkinResult> supplier) {
         return buildArgument(literal(name), context -> supplier.get());
     }
     
-    private static <T extends ArgumentBuilder<ServerCommandSource, T>> ArgumentBuilder<ServerCommandSource, T> buildArgument(
-            ArgumentBuilder<ServerCommandSource, T> argument,
-            Function<CommandContext<ServerCommandSource>, SkinResult> provider
+    private static <T extends ArgumentBuilder<CommandSourceStack, T>> ArgumentBuilder<CommandSourceStack, T> buildArgument(
+            ArgumentBuilder<CommandSourceStack, T> argument,
+            Function<CommandContext<CommandSourceStack>, SkinResult> provider
     ) {
         return argument
                 .executes(context -> skinAction(
@@ -87,47 +87,47 @@ public final class SkinCommand {
                 .then(makeTargetsArgument(provider));
     }
     
-    private static RequiredArgumentBuilder<ServerCommandSource, GameProfileArgumentType.GameProfileArgument> makeTargetsArgument(
-            Function<CommandContext<ServerCommandSource>, SkinResult> provider
+    private static RequiredArgumentBuilder<CommandSourceStack, GameProfileArgument.Result> makeTargetsArgument(
+            Function<CommandContext<CommandSourceStack>, SkinResult> provider
     ) {
-        return argument("targets", GameProfileArgumentType.gameProfile())
-                .requires(source -> source.hasPermissionLevel(2))
+        return argument("targets", GameProfileArgument.gameProfile())
+                .requires(source -> source.hasPermission(2))
                 .executes(context -> skinAction(
                         context.getSource(),
-                        GameProfileArgumentType.getProfileArgument(context, "targets"),
+                        GameProfileArgument.getGameProfiles(context, "targets"),
                         true,
                         () -> provider.apply(context)
                 ));
     }
     
-    private static int skinAction(ServerCommandSource src, Collection<GameProfile> targets, boolean setByOperator, Supplier<SkinResult> skinSupplier) {
+    private static int skinAction(CommandSourceStack src, Collection<GameProfile> targets, boolean setByOperator, Supplier<SkinResult> skinSupplier) {
         SkinRestorer.setSkinAsync(src.getServer(), targets, skinSupplier).thenAccept(pair -> {
             Collection<GameProfile> profiles = pair.right();
-            Collection<ServerPlayerEntity> players = pair.left();
+            Collection<ServerPlayer> players = pair.left();
             
             if (profiles.isEmpty()) {
-                src.sendError(Text.of(TranslationUtils.getTranslation().skinActionFailed));
+                src.sendFailure(Component.nullToEmpty(TranslationUtils.getTranslation().skinActionFailed));
                 return;
             }
             
             if (setByOperator) {
-                src.sendFeedback(() -> Text.of(
+                src.sendSuccess(() -> Component.nullToEmpty(
                         String.format(TranslationUtils.getTranslation().skinActionAffectedProfile,
                                 String.join(", ", profiles.stream().map(GameProfile::getName).toList()))), true);
                 
                 if (!players.isEmpty()) {
-                    src.sendFeedback(() -> Text.of(
+                    src.sendSuccess(() -> Component.nullToEmpty(
                             String.format(TranslationUtils.getTranslation().skinActionAffectedPlayer,
                                     String.join(", ", players.stream().map(p -> p.getGameProfile().getName()).toList()))), true);
                 }
             } else {
-                src.sendFeedback(() -> Text.of(TranslationUtils.getTranslation().skinActionOk), true);
+                src.sendSuccess(() -> Component.nullToEmpty(TranslationUtils.getTranslation().skinActionOk), true);
             }
         });
         return targets.size();
     }
     
-    private static int skinAction(ServerCommandSource src, Supplier<SkinResult> skinSupplier) {
+    private static int skinAction(CommandSourceStack src, Supplier<SkinResult> skinSupplier) {
         if (src.getPlayer() == null)
             return 0;
         

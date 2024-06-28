@@ -4,8 +4,8 @@
     "package": "net.lionarius.skinrestorer.mixin",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
-        "PlayerManagerMixin",
-        "ServerLoginNetworkHandlerMixin"
+        "PlayerListMixin",
+        "ServerLoginPacketListenerImplMixin"
     ],
     "injectors": {
         "defaultRequire": 1
