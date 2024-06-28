@@ -1,13 +1,11 @@
 package net.lionarius.skinrestorer;
 
-import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import it.unimi.dsi.fastutil.Pair;
 import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinStorage;
-import net.lionarius.skinrestorer.util.JsonUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -22,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class SkinRestorer {
+public final class SkinRestorer {
     public static final String MOD_ID = "skinrestorer";
     public static final Logger LOGGER = LoggerFactory.getLogger("SkinRestorer");
     
@@ -68,7 +66,7 @@ public class SkinRestorer {
                     for (GameProfile profile : acceptedProfiles) {
                         ServerPlayerEntity player = server.getPlayerManager().getPlayer(profile.getId());
                         
-                        if (player == null || areSkinPropertiesEquals(skin, PlayerUtils.getPlayerSkin(player)))
+                        if (player == null || PlayerUtils.areSkinPropertiesEquals(skin, PlayerUtils.getPlayerSkin(player)))
                             continue;
                         
                         PlayerUtils.applyRestoredSkin(player, skin);
@@ -82,24 +80,5 @@ public class SkinRestorer {
                     SkinRestorer.LOGGER.error(String.valueOf(e));
                     return Pair.of(Collections.emptySet(), Collections.emptySet());
                 });
-    }
-    
-    private static boolean areSkinPropertiesEquals(Property x, Property y) {
-        if (x == y)
-            return true;
-        
-        if (x == null || y == null)
-            return false;
-        
-        if (x.equals(y))
-            return true;
-        
-        JsonObject xJson = JsonUtils.skinPropertyToJson(x);
-        JsonObject yJson = JsonUtils.skinPropertyToJson(y);
-        
-        if (xJson == null || yJson == null)
-            return false;
-        
-        return xJson.equals(yJson);
     }
 }

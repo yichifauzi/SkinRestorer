@@ -1,5 +1,6 @@
 package net.lionarius.skinrestorer.util;
 
+import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.minecraft.network.packet.s2c.play.*;
@@ -61,5 +62,25 @@ public class PlayerUtils {
         
         if (skin != null)
             profile.getProperties().put(TEXTURES_KEY, skin);
+    }
+    
+    
+    public static boolean areSkinPropertiesEquals(Property x, Property y) {
+        if (x == y)
+            return true;
+        
+        if (x == null || y == null)
+            return false;
+        
+        if (x.equals(y))
+            return true;
+        
+        JsonObject xJson = JsonUtils.skinPropertyToJson(x);
+        JsonObject yJson = JsonUtils.skinPropertyToJson(y);
+        
+        if (xJson == null || yJson == null)
+            return false;
+        
+        return xJson.equals(yJson);
     }
 }
