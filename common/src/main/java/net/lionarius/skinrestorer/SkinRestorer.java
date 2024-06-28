@@ -12,6 +12,7 @@ import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.WorldSavePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,10 +48,14 @@ public final class SkinRestorer {
     
     public static void onInitialize(Path rootConfigDir) {
         SkinRestorer.configDir = rootConfigDir.resolve(MOD_ID);
-        SkinRestorer.skinStorage = new SkinStorage(new SkinIO(SkinRestorer.configDir));
         
         SkinRestorer.providers.put("mojang", new MojangSkinProvider());
         SkinRestorer.providers.put("web", new MineskinSkinProvider());
+    }
+    
+    public static void onServerStarted(MinecraftServer server) {
+        Path worldPath = server.getSavePath(WorldSavePath.ROOT).resolve(MOD_ID);
+        SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldPath));
     }
     
     public static CompletableFuture<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<SkinResult> skinSupplier) {
