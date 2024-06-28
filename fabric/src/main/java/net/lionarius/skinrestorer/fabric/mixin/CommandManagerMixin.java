@@ -1,4 +1,4 @@
-package net.lionarius.skinrestorer.mixin;
+package net.lionarius.skinrestorer.fabric.mixin;
 
 import com.mojang.brigadier.CommandDispatcher;
 import net.lionarius.skinrestorer.command.SkinCommand;

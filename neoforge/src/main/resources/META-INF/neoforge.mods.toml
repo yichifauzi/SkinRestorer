@@ -28,4 +28,4 @@ ordering = "NONE"
 side = "SERVER"
 
 [[mixins]]
-config = "skinrestorer.mixins.json"
+config = "skinrestorer-common.mixins.json"

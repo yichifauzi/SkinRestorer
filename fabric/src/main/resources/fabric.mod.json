@@ -20,7 +20,8 @@
         ]
     },
     "mixins": [
-        "skinrestorer.mixins.json"
+        "skinrestorer-common.mixins.json",
+        "skinrestorer-fabric.mixins.json"
     ],
     "depends": {
         "fabricloader": ">=0.15.10",

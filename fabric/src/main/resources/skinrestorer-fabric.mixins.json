@@ -1,12 +1,10 @@
 {
     "required": true,
     "minVersion": "0.8",
-    "package": "net.lionarius.skinrestorer.mixin",
+    "package": "net.lionarius.skinrestorer.fabric.mixin",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
-        "CommandManagerMixin",
-        "PlayerManagerMixin",
-        "ServerLoginNetworkHandlerMixin"
+        "CommandManagerMixin"
     ],
     "injectors": {
         "defaultRequire": 1
