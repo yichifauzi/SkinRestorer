@@ -3,11 +3,14 @@ package net.lionarius.skinrestorer.command;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import net.lionarius.skinrestorer.skin.provider.MineskinSkinProvider;
-import net.lionarius.skinrestorer.skin.provider.MojangSkinProvider;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinVariant;
+import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.util.TranslationUtils;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
@@ -16,6 +19,8 @@ import net.minecraft.text.Text;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -24,44 +29,73 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class SkinCommand {
     
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(literal("skin")
-                .then(literal("set")
-                        .then(literal("mojang")
-                                .then(argument("skin_name", StringArgumentType.word())
-                                        .executes(context ->
-                                                skinAction(context.getSource(),
-                                                        () -> MojangSkinProvider.getSkin(StringArgumentType.getString(context, "skin_name"))))
-                                        .then(argument("targets", GameProfileArgumentType.gameProfile()).requires(source -> source.hasPermissionLevel(2))
-                                                .executes(context ->
-                                                        skinAction(context.getSource(), GameProfileArgumentType.getProfileArgument(context, "targets"), true,
-                                                                () -> MojangSkinProvider.getSkin(StringArgumentType.getString(context, "skin_name")))))))
-                        .then(literal("web")
-                                .then(literal("classic")
-                                        .then(argument("url", StringArgumentType.string())
-                                                .executes(context ->
-                                                        skinAction(context.getSource(),
-                                                                () -> MineskinSkinProvider.getSkin(StringArgumentType.getString(context, "url"), SkinVariant.CLASSIC)))
-                                                .then(argument("targets", GameProfileArgumentType.gameProfile()).requires(source -> source.hasPermissionLevel(2))
-                                                        .executes(context ->
-                                                                skinAction(context.getSource(), GameProfileArgumentType.getProfileArgument(context, "targets"), true,
-                                                                        () -> MineskinSkinProvider.getSkin(StringArgumentType.getString(context, "url"), SkinVariant.CLASSIC))))))
-                                .then(literal("slim")
-                                        .then(argument("url", StringArgumentType.string())
-                                                .executes(context ->
-                                                        skinAction(context.getSource(),
-                                                                () -> MineskinSkinProvider.getSkin(StringArgumentType.getString(context, "url"), SkinVariant.SLIM)))
-                                                .then(argument("targets", GameProfileArgumentType.gameProfile()).requires(source -> source.hasPermissionLevel(2))
-                                                        .executes(context ->
-                                                                skinAction(context.getSource(), GameProfileArgumentType.getProfileArgument(context, "targets"), true,
-                                                                        () -> MineskinSkinProvider.getSkin(StringArgumentType.getString(context, "url"), SkinVariant.SLIM))))))))
-                .then(literal("clear")
-                        .executes(context ->
-                                skinAction(context.getSource(),
-                                        SkinResult::empty))
-                        .then(argument("targets", GameProfileArgumentType.gameProfile()).requires(source -> source.hasPermissionLevel(2)).executes(context ->
-                                skinAction(context.getSource(), GameProfileArgumentType.getProfileArgument(context, "targets"), true,
-                                        SkinResult::empty))))
-        );
+        LiteralArgumentBuilder<ServerCommandSource> base =
+                literal("skin")
+                        .then(buildAction("clear", SkinResult::empty));
+        
+        LiteralArgumentBuilder<ServerCommandSource> set = literal("set");
+        
+        for (Map.Entry<String, SkinProvider> entry : SkinRestorer.getProviders()) {
+            set.then(buildAction(entry.getKey(), entry.getValue()));
+        }
+        
+        base.then(set);
+        
+        dispatcher.register(base);
+    }
+    
+    private static LiteralArgumentBuilder<ServerCommandSource> buildAction(String name, SkinProvider provider) {
+        LiteralArgumentBuilder<ServerCommandSource> action = literal(name);
+        
+        if (provider.hasVariantSupport()) {
+            for (SkinVariant variant : SkinVariant.values()) {
+                action.then(
+                        literal(variant.toString())
+                                .then(buildArgument(
+                                        argument(provider.getArgumentName(), StringArgumentType.string()),
+                                        context -> provider.getSkin(StringArgumentType.getString(context, provider.getArgumentName()), variant)
+                                ))
+                );
+            }
+        } else {
+            action.then(
+                    buildArgument(
+                            argument(provider.getArgumentName(), StringArgumentType.string()),
+                            context -> provider.getSkin(StringArgumentType.getString(context, provider.getArgumentName()), SkinVariant.CLASSIC)
+                    )
+            );
+        }
+        
+        return action;
+    }
+    
+    private static ArgumentBuilder<ServerCommandSource, LiteralArgumentBuilder<ServerCommandSource>> buildAction(String name, Supplier<SkinResult> supplier) {
+        return buildArgument(literal(name), context -> supplier.get());
+    }
+    
+    private static <T extends ArgumentBuilder<ServerCommandSource, T>> ArgumentBuilder<ServerCommandSource, T> buildArgument(
+            ArgumentBuilder<ServerCommandSource, T> argument,
+            Function<CommandContext<ServerCommandSource>, SkinResult> provider
+    ) {
+        return argument
+                .executes(context -> skinAction(
+                        context.getSource(),
+                        () -> provider.apply(context)
+                ))
+                .then(makeTargetsArgument(provider));
+    }
+    
+    private static RequiredArgumentBuilder<ServerCommandSource, GameProfileArgumentType.GameProfileArgument> makeTargetsArgument(
+            Function<CommandContext<ServerCommandSource>, SkinResult> provider
+    ) {
+        return argument("targets", GameProfileArgumentType.gameProfile())
+                .requires(source -> source.hasPermissionLevel(2))
+                .executes(context -> skinAction(
+                        context.getSource(),
+                        GameProfileArgumentType.getProfileArgument(context, "targets"),
+                        true,
+                        () -> provider.apply(context)
+                ));
     }
     
     private static int skinAction(ServerCommandSource src, Collection<GameProfile> targets, boolean setByOperator, Supplier<SkinResult> skinSupplier) {
