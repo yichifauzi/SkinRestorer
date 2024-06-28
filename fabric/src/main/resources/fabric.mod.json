@@ -13,9 +13,9 @@
         "issues": "https://github.com/Suiranoil/SkinRestorer/issues"
     },
     "license": "MIT",
-    "environment": "server",
+    "environment": "*",
     "entrypoints": {
-        "server": [
+        "main": [
             "net.lionarius.skinrestorer.fabric.SkinRestorerFabric"
         ]
     },
