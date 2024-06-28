@@ -28,4 +28,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: skin-restorer-artifacts
-          path: build/libs
+          path: build/libs/merged

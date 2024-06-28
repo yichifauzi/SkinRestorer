@@ -3,8 +3,7 @@ plugins {
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
     id "io.github.pacifistmc.forgix" version "1.2.9"
-//    id "com.modrinth.minotaur" version "2.+"
-//    id 'net.darkhax.curseforgegradle' version '1.1.15'
+    id "me.shedaniel.unified-publishing" version "0.1.+"
 }
 
 version = "${project.mod_version}+${project.minecraft_version}"
@@ -24,6 +23,8 @@ forgix {
 }
 
 allprojects {
+    apply plugin: "java"
+    
     version = rootProject.version
     group = project.maven_group
 }
@@ -31,6 +32,10 @@ allprojects {
 subprojects {
     apply plugin: 'dev.architectury.loom'
     apply plugin: 'architectury-plugin'
+    
+    loom {
+        silentMojangMappingsLicense()
+    }
 
     base {
         archivesName = "$rootProject.archives_name-$project.name"
@@ -112,56 +117,33 @@ tasks.register('assertNewVersion') {
     }
 }
 
-//tasks.register('publish') {
-//    group = 'publishing'
-//    dependsOn 'assertNewVersion'
-//    dependsOn 'generateChangelog'
-//    dependsOn 'modrinth'
-////    dependsOn 'curseforge'
-//    doFirst {
-//        println "Last version: $previousTag"
-//        println "Current version: $headTag"
-//        println "Changelog:"
-//        println generateChangelog.changelog
-//    }
-//}
-//
-//modrinth {
-//    token = System.getenv('MODRINTH_TOKEN')
-//    projectId = project.modrinth_id
-//    versionName = version_name
-//    versionType = "release"
-//    changelog = generateChangelog.changelog
-//    uploadFile = remapJar
-//    project.modrinth_game_versions.split(',').each {
-//        gameVersions.add(it.trim())
-//    }
-//    project.modrinth_mod_loaders.split(',').each {
-//        loaders.add(it.trim())
-//    }
-//}
-//
-//tasks.modrinth.dependsOn('assertNewVersion')
+tasks.publishUnified.dependsOn('assertNewVersion', 'build')
 
-// cannot test it, returns 403 Forbidden. disabled for now
-//import net.darkhax.curseforgegradle.TaskPublishCurseForge
-//task curseforge(type: TaskPublishCurseForge) {
-//    group = 'publishing'
-//
-//    disableVersionDetection()
-//
-//    apiToken = System.getenv("CURSEFORGE_TOKEN")
-//
-//    def mainFile = upload(project.curseforge_id, remapJar)
-//    mainFile.releaseType = 'release'
-//    mainFile.changelog = generateChangelog.changelog
-//    mainFile.changelogType = 'markdown'
-//    project.curseforge_game_versions.split(',').each {
-//        mainFile.addGameVersion(it.trim())
-//    }
-//    project.curseforge_mod_loaders.split(',').each {
-//        mainFile.addModLoader(it.trim())
-//    }
-//}
-//
-// tasks.curseforge.dependsOn('assertNewVersion')
+unifiedPublishing {
+    project {
+        displayName = version_name.toString()
+        version = project.version
+        changelog = generateChangelog.changelog
+        releaseType = "release"
+        gameVersions = List.of(project.game_versions.split(','))
+        gameLoaders = List.of(project.mod_loaders.split(','))
+
+        mainPublication.set(file("build/libs/merged/${project.archives_name}-${project.version}.jar"))
+
+        var cfToken = System.getenv("CF_TOKEN")
+        if (cfToken != null) {
+            curseforge {
+                token = cfToken
+                id = project.curseforge_id
+            }
+        }
+
+        var mrToken = System.getenv("MODRINTH_TOKEN")
+        if (mrToken != null) {
+            modrinth {
+                token = mrToken
+                id = project.modrinth_id
+            }
+        }
+    }
+}
