@@ -104,22 +104,22 @@ public class SkinCommand {
             Collection<ServerPlayerEntity> players = pair.left();
             
             if (profiles.isEmpty()) {
-                src.sendError(Text.of(TranslationUtils.translation.skinActionFailed));
+                src.sendError(Text.of(TranslationUtils.getTranslation().skinActionFailed));
                 return;
             }
             
             if (setByOperator) {
                 src.sendFeedback(() -> Text.of(
-                        String.format(TranslationUtils.translation.skinActionAffectedProfile,
+                        String.format(TranslationUtils.getTranslation().skinActionAffectedProfile,
                                 String.join(", ", profiles.stream().map(GameProfile::getName).toList()))), true);
                 
                 if (!players.isEmpty()) {
                     src.sendFeedback(() -> Text.of(
-                            String.format(TranslationUtils.translation.skinActionAffectedPlayer,
+                            String.format(TranslationUtils.getTranslation().skinActionAffectedPlayer,
                                     String.join(", ", players.stream().map(p -> p.getGameProfile().getName()).toList()))), true);
                 }
             } else {
-                src.sendFeedback(() -> Text.of(TranslationUtils.translation.skinActionOk), true);
+                src.sendFeedback(() -> Text.of(TranslationUtils.getTranslation().skinActionOk), true);
             }
         });
         return targets.size();

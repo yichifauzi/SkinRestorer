@@ -16,6 +16,11 @@ public class TranslationUtils {
     }
     
     public static final String TRANSLATION_FILENAME = "translation";
+    private static Translation translation = new Translation();
+    
+    public static Translation getTranslation() {
+        return translation;
+    }
     
     static {
         Path path = SkinRestorer.getConfigDir().resolve(TRANSLATION_FILENAME + SkinIO.FILE_EXTENSION);
