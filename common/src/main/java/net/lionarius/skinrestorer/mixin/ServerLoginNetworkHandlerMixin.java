@@ -30,6 +30,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
     public void waitForSkin(CallbackInfo ci) {
         if (skinrestorer_pendingSkin == null) {
             skinrestorer_pendingSkin = CompletableFuture.supplyAsync(() -> {
+                assert profile != null;
                 SkinRestorer.LOGGER.debug("Fetching {}'s skin", profile.getName());
                 
                 if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId())) { // when player joins for the first time fetch Mojang skin by his username

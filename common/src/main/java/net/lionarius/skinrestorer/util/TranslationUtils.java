@@ -1,6 +1,7 @@
 package net.lionarius.skinrestorer.util;
 
 import net.lionarius.skinrestorer.SkinRestorer;
+import net.lionarius.skinrestorer.skin.SkinIO;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,10 +15,10 @@ public class TranslationUtils {
         public String skinActionOk = "Skin changed";
     }
     
-    public static Translation translation = new Translation();
+    public static final String TRANSLATION_FILENAME = "translation";
     
     static {
-        Path path = SkinRestorer.getConfigDir().resolve("translation.json");
+        Path path = SkinRestorer.getConfigDir().resolve(TRANSLATION_FILENAME + SkinIO.FILE_EXTENSION);
         
         if (Files.exists(path)) {
             try {

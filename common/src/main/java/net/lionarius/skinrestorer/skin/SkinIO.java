@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class SkinIO {
     
-    private static final String FILE_EXTENSION = ".json";
+    public static final String FILE_EXTENSION = ".json";
     
     private final Path savePath;
     

@@ -9,6 +9,7 @@ import net.lionarius.skinrestorer.skin.SkinStorage;
 import net.lionarius.skinrestorer.skin.provider.MineskinSkinProvider;
 import net.lionarius.skinrestorer.skin.provider.MojangSkinProvider;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
+import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -26,7 +27,7 @@ public final class SkinRestorer {
     public static final String MOD_ID = "skinrestorer";
     public static final Logger LOGGER = LoggerFactory.getLogger("SkinRestorer");
     
-    private static Map<String, SkinProvider> providers = new HashMap<>();
+    private static final Map<String, SkinProvider> providers = new HashMap<>();
     private static SkinStorage skinStorage;
     private static Path configDir;
     
@@ -54,8 +55,10 @@ public final class SkinRestorer {
     }
     
     public static void onServerStarted(MinecraftServer server) {
-        Path worldPath = server.getSavePath(WorldSavePath.ROOT).resolve(MOD_ID);
-        SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldPath));
+        Path worldSkinDirectory = server.getSavePath(WorldSavePath.ROOT).resolve(MOD_ID);
+        FileUtils.tryMigrateOldSkinDirectory(worldSkinDirectory);
+        
+        SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldSkinDirectory));
     }
     
     public static CompletableFuture<Pair<Collection<ServerPlayerEntity>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<SkinResult> skinSupplier) {
