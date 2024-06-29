@@ -11,18 +11,18 @@ import net.lionarius.skinrestorer.util.WebUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
 import java.util.Optional;
-import java.util.UUID;
 
 public final class MojangSkinProvider implements SkinProvider {
     
-    private static final URI API_URL;
-    private static final URI SESSION_SERVER_URL;
+    private static final URI API_URI;
+    private static final URI SESSION_SERVER_URI;
     
     static {
         try {
-            API_URL = new URI("https://api.mojang.com/users/profiles/minecraft/");
-            SESSION_SERVER_URL = new URI("https://sessionserver.mojang.com/session/minecraft/profile/");
+            API_URI = new URI("https://api.mojang.com/");
+            SESSION_SERVER_URI = new URI("https://sessionserver.mojang.com/");
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
@@ -42,9 +42,10 @@ public final class MojangSkinProvider implements SkinProvider {
     @Override
     public Result<Optional<Property>, Exception> getSkin(String username, SkinVariant variant) {
         try {
-            UUID uuid = getUUID(username);
-            JsonObject texture = JsonUtils.parseJson(WebUtils.getRequest(SESSION_SERVER_URL.resolve(uuid + "?unsigned=false").toURL()))
-                    .getAsJsonArray("properties").get(0).getAsJsonObject();
+            var uuid = MojangSkinProvider.getUuid(username);
+            var profile = MojangSkinProvider.getMojangProfile(uuid);
+            
+            var texture = profile.getAsJsonArray("properties").get(0).getAsJsonObject();
             
             return Result.ofNullable(new Property(PlayerUtils.TEXTURES_KEY, texture.get("value").getAsString(), texture.get("signature").getAsString()));
         } catch (Exception e) {
@@ -52,8 +53,43 @@ public final class MojangSkinProvider implements SkinProvider {
         }
     }
     
-    private static UUID getUUID(String name) throws IOException {
-        return UUID.fromString(JsonUtils.parseJson(WebUtils.getRequest(API_URL.resolve(name).toURL())).get("id").getAsString()
-                .replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"));
+    private static String getUuid(final String name) throws IOException {
+        var request = HttpRequest.newBuilder()
+                .uri(MojangSkinProvider.API_URI
+                        .resolve("users/profiles/minecraft/")
+                        .resolve(name)
+                )
+                .GET()
+                .build();
+        
+        var response = WebUtils.executeRequest(request);
+        WebUtils.throwOnClientErrors(response);
+        
+        if (response.statusCode() != 200)
+            throw new IllegalArgumentException("no profile with name " + name);
+        
+        var profile = JsonUtils.parseJson(response.body());
+        if (profile == null)
+            return null;
+        
+        return profile.get("id").getAsString();
+    }
+    
+    private static JsonObject getMojangProfile(final String uuid) throws IOException {
+        var request = HttpRequest.newBuilder()
+                .uri(MojangSkinProvider.SESSION_SERVER_URI
+                        .resolve("session/minecraft/profile/")
+                        .resolve(uuid + "?unsigned=false")
+                )
+                .GET()
+                .build();
+        
+        var response = WebUtils.executeRequest(request);
+        WebUtils.throwOnClientErrors(response);
+        
+        if (response.statusCode() != 200)
+            throw new IllegalArgumentException("no profile with uuid " + uuid);
+        
+        return JsonUtils.parseJson(response.body());
     }
 }
