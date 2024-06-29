@@ -3,8 +3,10 @@ package net.lionarius.skinrestorer.util;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import net.lionarius.skinrestorer.mixin.ChunkMapAccessor;
+import net.lionarius.skinrestorer.mixin.TrackedEntityMixin;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.server.level.ServerChunkCache;
+import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
@@ -25,7 +27,7 @@ public final class PlayerUtils {
     public static void refreshPlayer(ServerPlayer player) {
         ServerLevel serverLevel = player.serverLevel();
         PlayerList playerList = serverLevel.getServer().getPlayerList();
-        ServerChunkCache chunkSource = serverLevel.getChunkSource();
+        ChunkMap chunkMap = serverLevel.getChunkSource().chunkMap;
         
         playerList.broadcastAll(new ClientboundBundlePacket(
                 List.of(
@@ -34,9 +36,22 @@ public final class PlayerUtils {
                 )
         ));
         
+        var trackedEntity = (TrackedEntityMixin) ((ChunkMapAccessor) chunkMap).getEntityMap().get(player.getId());
+        if (trackedEntity != null) {
+            for (var observerConnection : trackedEntity.getSeenBy()) {
+                var observer = observerConnection.getPlayer();
+                trackedEntity.invokeRemovePlayer(observer);
+                
+                var trackedObserverEntity = (TrackedEntityMixin) ((ChunkMapAccessor) chunkMap).getEntityMap().get(observer.getId());
+                if (trackedObserverEntity != null) {
+                    trackedObserverEntity.invokeRemovePlayer(player);
+                    trackedObserverEntity.invokeUpdatePlayer(player);
+                }
+                trackedEntity.invokeUpdatePlayer(observer);
+            }
+        }
+        
         if (!player.isDeadOrDying()) {
-            chunkSource.removeEntity(player);
-            chunkSource.addEntity(player);
             player.connection.send(new ClientboundBundlePacket(
                     List.of(
                             new ClientboundRespawnPacket(player.createCommonSpawnInfo(serverLevel), ClientboundRespawnPacket.KEEP_ALL_DATA),

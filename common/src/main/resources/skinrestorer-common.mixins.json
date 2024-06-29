@@ -5,7 +5,9 @@
     "compatibilityLevel": "JAVA_8",
     "mixins": [
         "PlayerListMixin",
-        "ServerLoginPacketListenerImplMixin"
+        "ServerLoginPacketListenerImplMixin",
+        "ChunkMapAccessor",
+        "TrackedEntityMixin"
     ],
     "injectors": {
         "defaultRequire": 1
