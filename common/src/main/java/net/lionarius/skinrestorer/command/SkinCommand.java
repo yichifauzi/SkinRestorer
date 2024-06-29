@@ -1,6 +1,7 @@
 package net.lionarius.skinrestorer.command;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -8,9 +9,9 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.lionarius.skinrestorer.SkinRestorer;
-import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
+import net.lionarius.skinrestorer.util.Result;
 import net.lionarius.skinrestorer.util.TranslationUtils;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.GameProfileArgument;
@@ -20,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -33,7 +35,7 @@ public final class SkinCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> base =
                 literal("skin")
-                        .then(buildAction("clear", SkinResult::empty));
+                        .then(buildAction("clear", () -> Result.ofNullable(null)));
         
         LiteralArgumentBuilder<CommandSourceStack> set = literal("set");
         
@@ -71,13 +73,16 @@ public final class SkinCommand {
         return action;
     }
     
-    private static ArgumentBuilder<CommandSourceStack, LiteralArgumentBuilder<CommandSourceStack>> buildAction(String name, Supplier<SkinResult> supplier) {
+    private static ArgumentBuilder<CommandSourceStack, LiteralArgumentBuilder<CommandSourceStack>> buildAction(
+            String name,
+            Supplier<Result<Optional<Property>, ?>> supplier
+    ) {
         return buildArgument(literal(name), context -> supplier.get());
     }
     
     private static <T extends ArgumentBuilder<CommandSourceStack, T>> ArgumentBuilder<CommandSourceStack, T> buildArgument(
             ArgumentBuilder<CommandSourceStack, T> argument,
-            Function<CommandContext<CommandSourceStack>, SkinResult> provider
+            Function<CommandContext<CommandSourceStack>, Result<Optional<Property>, ?>> provider
     ) {
         return argument
                 .executes(context -> skinAction(
@@ -88,7 +93,7 @@ public final class SkinCommand {
     }
     
     private static RequiredArgumentBuilder<CommandSourceStack, GameProfileArgument.Result> makeTargetsArgument(
-            Function<CommandContext<CommandSourceStack>, SkinResult> provider
+            Function<CommandContext<CommandSourceStack>, Result<Optional<Property>, ?>> provider
     ) {
         return argument("targets", GameProfileArgument.gameProfile())
                 .requires(source -> source.hasPermission(2))
@@ -100,7 +105,12 @@ public final class SkinCommand {
                 ));
     }
     
-    private static int skinAction(CommandSourceStack src, Collection<GameProfile> targets, boolean setByOperator, Supplier<SkinResult> skinSupplier) {
+    private static int skinAction(
+            CommandSourceStack src,
+            Collection<GameProfile> targets,
+            boolean setByOperator,
+            Supplier<Result<Optional<Property>, ?>> skinSupplier
+    ) {
         SkinRestorer.setSkinAsync(src.getServer(), targets, skinSupplier).thenAccept(pair -> {
             Collection<GameProfile> profiles = pair.right();
             Collection<ServerPlayer> players = pair.left();
@@ -127,7 +137,7 @@ public final class SkinCommand {
         return targets.size();
     }
     
-    private static int skinAction(CommandSourceStack src, Supplier<SkinResult> skinSupplier) {
+    private static int skinAction(CommandSourceStack src, Supplier<Result<Optional<Property>, ?>> skinSupplier) {
         if (src.getPlayer() == null)
             return 0;
         

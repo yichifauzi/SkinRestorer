@@ -4,13 +4,13 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import it.unimi.dsi.fastutil.Pair;
 import net.lionarius.skinrestorer.skin.SkinIO;
-import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinStorage;
 import net.lionarius.skinrestorer.skin.provider.MineskinSkinProvider;
 import net.lionarius.skinrestorer.skin.provider.MojangSkinProvider;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
+import net.lionarius.skinrestorer.util.Result;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -63,15 +63,19 @@ public final class SkinRestorer {
         SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldSkinDirectory));
     }
     
-    public static CompletableFuture<Pair<Collection<ServerPlayer>, Collection<GameProfile>>> setSkinAsync(MinecraftServer server, Collection<GameProfile> targets, Supplier<SkinResult> skinSupplier) {
+    public static CompletableFuture<Pair<Collection<ServerPlayer>, Collection<GameProfile>>> setSkinAsync(
+            MinecraftServer server,
+            Collection<GameProfile> targets,
+            Supplier<Result<Optional<Property>, ?>> skinSupplier
+    ) {
         return CompletableFuture.<Pair<Property, Collection<GameProfile>>>supplyAsync(() -> {
-                    SkinResult result = skinSupplier.get();
+                    var result = skinSupplier.get();
                     if (result.isError()) {
-                        SkinRestorer.LOGGER.error("Could not get skin", result.getError());
+                        SkinRestorer.LOGGER.error("Could not get skin: {}", result.getErrorValue());
                         return Pair.of(null, Collections.emptySet());
                     }
                     
-                    Property skin = result.getSkin();
+                    Property skin = result.getSuccessValue().orElse(null);
                     
                     for (GameProfile profile : targets) {
                         SkinRestorer.getSkinStorage().setSkin(profile.getId(), skin);

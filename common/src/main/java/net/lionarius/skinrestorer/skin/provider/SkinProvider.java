@@ -1,7 +1,10 @@
 package net.lionarius.skinrestorer.skin.provider;
 
-import net.lionarius.skinrestorer.skin.SkinResult;
+import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.skin.SkinVariant;
+import net.lionarius.skinrestorer.util.Result;
+
+import java.util.Optional;
 
 public interface SkinProvider {
     
@@ -9,5 +12,5 @@ public interface SkinProvider {
     
     boolean hasVariantSupport();
     
-    SkinResult getSkin(String argument, SkinVariant variant);
+    Result<Optional<Property>, Exception> getSkin(String argument, SkinVariant variant);
 }

@@ -2,8 +2,8 @@ package net.lionarius.skinrestorer.mixin;
 
 import com.mojang.authlib.GameProfile;
 import net.lionarius.skinrestorer.SkinRestorer;
-import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinVariant;
+import net.lionarius.skinrestorer.util.Result;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,7 +22,7 @@ public abstract class ServerLoginPacketListenerImplMixin {
     private GameProfile authenticatedProfile;
     
     @Unique
-    private CompletableFuture<SkinResult> skinrestorer_pendingSkin;
+    private CompletableFuture<Void> skinrestorer_pendingSkin;
     
     @Inject(method = "verifyLoginAndFinishConnectionSetup", at = @At(value = "INVOKE",
                                                                      target = "Lnet/minecraft/server/players/PlayerList;canPlayerLogin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/network/chat/Component;"),
@@ -34,15 +34,17 @@ public abstract class ServerLoginPacketListenerImplMixin {
                 SkinRestorer.LOGGER.debug("Fetching {}'s skin", authenticatedProfile.getName());
                 
                 if (!SkinRestorer.getSkinStorage().hasSavedSkin(authenticatedProfile.getId())) { // when player joins for the first time fetch Mojang skin by his username
-                    SkinResult result = SkinRestorer.getProvider("mojang").map(
+                    var result = SkinRestorer.getProvider("mojang").map(
                             provider -> provider.getSkin(authenticatedProfile.getName(), SkinVariant.CLASSIC)
-                    ).orElse(SkinResult.empty());
+                    ).orElse(Result.ofNullable(null));
                     
                     if (!result.isError())
-                        SkinRestorer.getSkinStorage().setSkin(authenticatedProfile.getId(), result.getSkin());
+                        SkinRestorer.getSkinStorage().setSkin(authenticatedProfile.getId(), result.getSuccessValue().orElse(null));
                 }
                 
-                return SkinResult.ofNullable(SkinRestorer.getSkinStorage().getSkin(authenticatedProfile.getId()));
+                SkinRestorer.getSkinStorage().getSkin(authenticatedProfile.getId()); // loads skin from disk
+                
+                return null;
             });
         }
         

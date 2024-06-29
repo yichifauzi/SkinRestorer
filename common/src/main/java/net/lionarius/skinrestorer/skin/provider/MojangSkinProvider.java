@@ -2,15 +2,16 @@ package net.lionarius.skinrestorer.skin.provider;
 
 import com.google.gson.JsonObject;
 import com.mojang.authlib.properties.Property;
-import net.lionarius.skinrestorer.skin.SkinResult;
 import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.util.JsonUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
+import net.lionarius.skinrestorer.util.Result;
 import net.lionarius.skinrestorer.util.WebUtils;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class MojangSkinProvider implements SkinProvider {
@@ -39,15 +40,15 @@ public final class MojangSkinProvider implements SkinProvider {
     }
     
     @Override
-    public SkinResult getSkin(String username, SkinVariant variant) {
+    public Result<Optional<Property>, Exception> getSkin(String username, SkinVariant variant) {
         try {
             UUID uuid = getUUID(username);
             JsonObject texture = JsonUtils.parseJson(WebUtils.getRequest(SESSION_SERVER_URL.resolve(uuid + "?unsigned=false").toURL()))
                     .getAsJsonArray("properties").get(0).getAsJsonObject();
             
-            return SkinResult.success(new Property(PlayerUtils.TEXTURES_KEY, texture.get("value").getAsString(), texture.get("signature").getAsString()));
+            return Result.ofNullable(new Property(PlayerUtils.TEXTURES_KEY, texture.get("value").getAsString(), texture.get("signature").getAsString()));
         } catch (Exception e) {
-            return SkinResult.error(e);
+            return Result.error(e);
         }
     }
     
