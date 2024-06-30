@@ -62,6 +62,10 @@ public final class SkinRestorer {
         SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldSkinDirectory));
     }
     
+    public static String resource(String name) {
+        return String.format("/assets/%s/%s", SkinRestorer.MOD_ID, name);
+    }
+    
     public static CompletableFuture<Result<Collection<ServerPlayer>, String>> setSkinAsync(
             MinecraftServer server,
             Collection<GameProfile> targets,

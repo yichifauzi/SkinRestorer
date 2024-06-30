@@ -12,7 +12,7 @@ import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.util.Result;
-import net.lionarius.skinrestorer.util.TranslationUtils;
+import net.lionarius.skinrestorer.util.Translation;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.Component;
@@ -109,8 +109,8 @@ public final class SkinCommand {
     ) {
         SkinRestorer.setSkinAsync(src.getServer(), targets, skinSupplier).thenAccept(result -> {
             if (result.isError()) {
-                src.sendFailure(TranslationUtils.translatableWithFallback(
-                        TranslationUtils.COMMAND_SKIN_FAILED_KEY,
+                src.sendFailure(Translation.translatableWithFallback(
+                        Translation.COMMAND_SKIN_FAILED_KEY,
                         result.getErrorValue()
                 ));
                 return;
@@ -129,14 +129,14 @@ public final class SkinCommand {
                             playersComponent.append(", ");
                     }
                     
-                    src.sendSuccess(() -> TranslationUtils.translatableWithFallback(
-                            TranslationUtils.COMMAND_SKIN_AFFECTED_PLAYERS_KEY,
+                    src.sendSuccess(() -> Translation.translatableWithFallback(
+                            Translation.COMMAND_SKIN_AFFECTED_PLAYERS_KEY,
                             playersComponent
                     ), true);
                 }
             } else {
-                src.sendSuccess(() -> TranslationUtils.translatableWithFallback(
-                        TranslationUtils.COMMAND_SKIN_OK_KEY
+                src.sendSuccess(() -> Translation.translatableWithFallback(
+                        Translation.COMMAND_SKIN_OK_KEY
                 ), true);
             }
         });

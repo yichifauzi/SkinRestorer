@@ -21,7 +21,7 @@ public final class FileUtils {
             
             File configDirectory = SkinRestorer.getConfigDir().toFile();
             File[] files = configDirectory.listFiles(
-                    (file, name) -> !name.startsWith(TranslationUtils.TRANSLATION_FILENAME) && name.endsWith(SkinIO.FILE_EXTENSION)
+                    (file, name) -> !name.startsWith(Translation.LEGACY_TRANSLATION_FILENAME) && name.endsWith(SkinIO.FILE_EXTENSION)
             );
             if (files == null)
                 return;
@@ -32,6 +32,19 @@ public final class FileUtils {
             }
         } catch (Exception e) {
             SkinRestorer.LOGGER.error("Could not migrate skin directory", e);
+        }
+    }
+    
+    public static String readResource(String name) {
+        try (var stream = SkinRestorer.class.getResourceAsStream(name)) {
+            if (stream == null)
+                return null;
+            
+            try (var reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                return StringUtils.readString(reader);
+            }
+        } catch (IOException e) {
+            return null;
         }
     }
     
