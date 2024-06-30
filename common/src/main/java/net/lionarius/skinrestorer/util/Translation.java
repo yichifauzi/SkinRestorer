@@ -32,16 +32,16 @@ public final class Translation {
         return Component.translatableWithFallback(key, Translation.get(key), args);
     }
     
-    static {
+    public static void reloadTranslations() {
         try {
-            translations = Translation.loadTranslations("en_us"); // TODO: load from config
+            translations = Translation.loadTranslationMap(SkinRestorer.getConfig().getLanguage());
         } catch (Exception ex) {
             SkinRestorer.LOGGER.error("Failed to load translation", ex);
         }
         
         if (translations == null) {
             try {
-                translations = Translation.loadTranslations("en_us");
+                translations = Translation.loadTranslationMap("en_us");
             } catch (Exception ex) {
                 SkinRestorer.LOGGER.error("Failed to default translation", ex);
             }
@@ -51,7 +51,7 @@ public final class Translation {
             translations = new ImmutableMap.Builder<String, String>().build();
     }
     
-    private static ImmutableMap<String, String> loadTranslations(String lang) {
+    private static ImmutableMap<String, String> loadTranslationMap(String lang) {
         var json = FileUtils.readResource(SkinRestorer.resource(String.format("lang/%s.json", lang)));
         
         var type = new TypeToken<Map<String, String>>() {}.getType();

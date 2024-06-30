@@ -1,6 +1,7 @@
 package net.lionarius.skinrestorer.util;
 
 import net.lionarius.skinrestorer.SkinRestorer;
+import net.lionarius.skinrestorer.config.Config;
 import net.lionarius.skinrestorer.skin.SkinIO;
 
 import java.io.*;
@@ -21,7 +22,9 @@ public final class FileUtils {
             
             File configDirectory = SkinRestorer.getConfigDir().toFile();
             File[] files = configDirectory.listFiles(
-                    (file, name) -> !name.startsWith(Translation.LEGACY_TRANSLATION_FILENAME) && name.endsWith(SkinIO.FILE_EXTENSION)
+                    (file, name) -> !name.startsWith(Translation.LEGACY_TRANSLATION_FILENAME)
+                                    && !name.startsWith(Config.CONFIG_FILENAME)
+                                    && name.endsWith(SkinIO.FILE_EXTENSION)
             );
             if (files == null)
                 return;

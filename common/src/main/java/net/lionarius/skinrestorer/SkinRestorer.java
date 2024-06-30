@@ -2,6 +2,7 @@ package net.lionarius.skinrestorer;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import net.lionarius.skinrestorer.config.Config;
 import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinStorage;
 import net.lionarius.skinrestorer.skin.provider.MineskinSkinProvider;
@@ -10,6 +11,7 @@ import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.Result;
+import net.lionarius.skinrestorer.util.Translation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -29,6 +31,7 @@ public final class SkinRestorer {
     private static final Map<String, SkinProvider> providers = new HashMap<>();
     private static SkinStorage skinStorage;
     private static Path configDir;
+    private static Config config;
     
     private SkinRestorer() {}
     
@@ -38,6 +41,10 @@ public final class SkinRestorer {
     
     public static Path getConfigDir() {
         return SkinRestorer.configDir;
+    }
+    
+    public static Config getConfig() {
+        return SkinRestorer.config;
     }
     
     public static Iterable<Map.Entry<String, SkinProvider>> getProviders() {
@@ -59,7 +66,13 @@ public final class SkinRestorer {
         Path worldSkinDirectory = server.getWorldPath(LevelResource.ROOT).resolve(SkinRestorer.MOD_ID);
         FileUtils.tryMigrateOldSkinDirectory(worldSkinDirectory);
         
+        SkinRestorer.reloadConfig();
         SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldSkinDirectory));
+    }
+    
+    public static void reloadConfig() {
+        SkinRestorer.config = Config.load(SkinRestorer.getConfigDir());
+        Translation.reloadTranslations();
     }
     
     public static String resource(String name) {

@@ -33,7 +33,7 @@ public abstract class ServerLoginPacketListenerImplMixin {
                 assert authenticatedProfile != null;
                 SkinRestorer.LOGGER.debug("Fetching {}'s skin", authenticatedProfile.getName());
                 
-                if (!SkinRestorer.getSkinStorage().hasSavedSkin(authenticatedProfile.getId())) { // when player joins for the first time fetch Mojang skin by his username
+                if (SkinRestorer.getConfig().fetchSkinOnFirstJoin() && !SkinRestorer.getSkinStorage().hasSavedSkin(authenticatedProfile.getId())) { // when player joins for the first time fetch Mojang skin by his username
                     var result = SkinRestorer.getProvider("mojang").map(
                             provider -> provider.getSkin(authenticatedProfile.getName(), SkinVariant.CLASSIC)
                     ).orElse(Result.ofNullable(null));
@@ -42,7 +42,7 @@ public abstract class ServerLoginPacketListenerImplMixin {
                         SkinRestorer.getSkinStorage().setSkin(authenticatedProfile.getId(), result.getSuccessValue().orElse(null));
                 }
                 
-                SkinRestorer.getSkinStorage().getSkin(authenticatedProfile.getId()); // loads skin from disk
+                SkinRestorer.getSkinStorage().getSkin(authenticatedProfile.getId());
                 
                 return null;
             });
