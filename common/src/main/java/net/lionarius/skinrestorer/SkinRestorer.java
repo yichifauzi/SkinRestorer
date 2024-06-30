@@ -5,9 +5,8 @@ import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.config.Config;
 import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinStorage;
-import net.lionarius.skinrestorer.skin.provider.MineskinSkinProvider;
-import net.lionarius.skinrestorer.skin.provider.MojangSkinProvider;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
+import net.lionarius.skinrestorer.skin.provider.SkinProviderRegistry;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.Result;
@@ -19,7 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -28,7 +29,7 @@ public final class SkinRestorer {
     public static final String MOD_ID = "skinrestorer";
     public static final Logger LOGGER = LoggerFactory.getLogger("SkinRestorer");
     
-    private static final Map<String, SkinProvider> providers = new HashMap<>();
+    private static final SkinProviderRegistry providersRegistry = new SkinProviderRegistry();
     private static SkinStorage skinStorage;
     private static Path configDir;
     private static Config config;
@@ -47,19 +48,19 @@ public final class SkinRestorer {
         return SkinRestorer.config;
     }
     
-    public static Iterable<Map.Entry<String, SkinProvider>> getProviders() {
-        return SkinRestorer.providers.entrySet();
+    public static SkinProviderRegistry getProvidersRegistry() {
+        return SkinRestorer.providersRegistry;
     }
     
     public static Optional<SkinProvider> getProvider(String name) {
-        return Optional.ofNullable(SkinRestorer.providers.get(name));
+        return Optional.ofNullable(SkinRestorer.providersRegistry.get(name));
     }
     
     public static void onInitialize(Path rootConfigDir) {
         SkinRestorer.configDir = rootConfigDir.resolve(SkinRestorer.MOD_ID);
         
-        SkinRestorer.providers.put("mojang", new MojangSkinProvider());
-        SkinRestorer.providers.put("web", new MineskinSkinProvider());
+        SkinRestorer.providersRegistry.register("mojang", SkinProvider.MOJANG);
+        SkinRestorer.providersRegistry.register("web", SkinProvider.MINESKIN);
     }
     
     public static void onServerStarted(MinecraftServer server) {

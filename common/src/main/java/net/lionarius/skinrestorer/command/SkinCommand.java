@@ -17,7 +17,10 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -35,9 +38,9 @@ public final class SkinCommand {
         
         LiteralArgumentBuilder<CommandSourceStack> set = literal("set");
         
-        for (Map.Entry<String, SkinProvider> entry : SkinRestorer.getProviders()) {
-            set.then(buildAction(entry.getKey(), entry.getValue()));
-        }
+        var providers = SkinRestorer.getProvidersRegistry().getPublicProviders();
+        for (var entry : providers)
+            set.then(buildAction(entry.first(), entry.second()));
         
         base.then(set);
         

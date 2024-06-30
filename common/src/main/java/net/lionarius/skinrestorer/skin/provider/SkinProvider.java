@@ -7,6 +7,8 @@ import net.lionarius.skinrestorer.util.Result;
 import java.util.Optional;
 
 public interface SkinProvider {
+    SkinProvider MOJANG = new MojangSkinProvider();
+    SkinProvider MINESKIN = new MineskinSkinProvider();
     
     String getArgumentName();
     
