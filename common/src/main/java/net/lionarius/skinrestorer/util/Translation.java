@@ -1,11 +1,11 @@
 package net.lionarius.skinrestorer.util;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -34,7 +34,7 @@ public final class Translation {
     
     static {
         try {
-            translations = Translation.loadTranslations("en_us");
+            translations = Translation.loadTranslations("en_us"); // TODO: load from config
         } catch (Exception ex) {
             SkinRestorer.LOGGER.error("Failed to load translation", ex);
         }
@@ -48,13 +48,13 @@ public final class Translation {
         }
         
         if (translations == null)
-            translations = new HashMap<>();
+            translations = new ImmutableMap.Builder<String, String>().build();
     }
     
-    private static HashMap<String, String> loadTranslations(String lang) {
+    private static ImmutableMap<String, String> loadTranslations(String lang) {
         var json = FileUtils.readResource(SkinRestorer.resource(String.format("lang/%s.json", lang)));
         
-        var type = new TypeToken<HashMap<String, String>>() {}.getType();
-        return JsonUtils.fromJson(Objects.requireNonNull(json), type);
+        var type = new TypeToken<Map<String, String>>() {}.getType();
+        return ImmutableMap.copyOf((Map<String, String>) JsonUtils.fromJson(Objects.requireNonNull(json), type));
     }
 }
