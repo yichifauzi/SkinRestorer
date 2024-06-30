@@ -5,7 +5,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.properties.Property;
+import net.lionarius.skinrestorer.SkinRestorer;
 
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -19,7 +21,11 @@ public final class JsonUtils {
         return GSON.fromJson(json, clazz);
     }
     
-    public static String toJson(Object obj) {
+    public static <T> T fromJson(String json, Type type) {
+        return GSON.fromJson(json, type);
+    }
+    
+    public static <T> String toJson(T obj) {
         return GSON.toJson(obj);
     }
     
@@ -34,7 +40,8 @@ public final class JsonUtils {
                 json.remove("timestamp");
             
             return json;
-        } catch (Exception ex) {
+        } catch (Exception e) {
+            SkinRestorer.LOGGER.error(e.toString());
             return null;
         }
     }

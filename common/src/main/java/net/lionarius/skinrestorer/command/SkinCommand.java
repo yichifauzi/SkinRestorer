@@ -16,12 +16,8 @@ import net.lionarius.skinrestorer.util.TranslationUtils;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -75,14 +71,14 @@ public final class SkinCommand {
     
     private static ArgumentBuilder<CommandSourceStack, LiteralArgumentBuilder<CommandSourceStack>> buildAction(
             String name,
-            Supplier<Result<Optional<Property>, ?>> supplier
+            Supplier<Result<Optional<Property>, Exception>> supplier
     ) {
         return buildArgument(literal(name), context -> supplier.get());
     }
     
     private static <T extends ArgumentBuilder<CommandSourceStack, T>> ArgumentBuilder<CommandSourceStack, T> buildArgument(
             ArgumentBuilder<CommandSourceStack, T> argument,
-            Function<CommandContext<CommandSourceStack>, Result<Optional<Property>, ?>> provider
+            Function<CommandContext<CommandSourceStack>, Result<Optional<Property>, Exception>> provider
     ) {
         return argument
                 .executes(context -> skinAction(
@@ -93,7 +89,7 @@ public final class SkinCommand {
     }
     
     private static RequiredArgumentBuilder<CommandSourceStack, GameProfileArgument.Result> makeTargetsArgument(
-            Function<CommandContext<CommandSourceStack>, Result<Optional<Property>, ?>> provider
+            Function<CommandContext<CommandSourceStack>, Result<Optional<Property>, Exception>> provider
     ) {
         return argument("targets", GameProfileArgument.gameProfile())
                 .requires(source -> source.hasPermission(2))
@@ -109,35 +105,46 @@ public final class SkinCommand {
             CommandSourceStack src,
             Collection<GameProfile> targets,
             boolean setByOperator,
-            Supplier<Result<Optional<Property>, ?>> skinSupplier
+            Supplier<Result<Optional<Property>, Exception>> skinSupplier
     ) {
-        SkinRestorer.setSkinAsync(src.getServer(), targets, skinSupplier).thenAccept(pair -> {
-            Collection<GameProfile> profiles = pair.right();
-            Collection<ServerPlayer> players = pair.left();
-            
-            if (profiles.isEmpty()) {
-                src.sendFailure(Component.nullToEmpty(TranslationUtils.getTranslation().skinActionFailed));
+        SkinRestorer.setSkinAsync(src.getServer(), targets, skinSupplier).thenAccept(result -> {
+            if (result.isError()) {
+                src.sendFailure(TranslationUtils.translatableWithFallback(
+                        TranslationUtils.COMMAND_SKIN_FAILED_KEY,
+                        result.getErrorValue()
+                ));
                 return;
             }
             
+            var updatedPlayers = result.getSuccessValue();
+            
             if (setByOperator) {
-                src.sendSuccess(() -> Component.nullToEmpty(
-                        String.format(TranslationUtils.getTranslation().skinActionAffectedProfile,
-                                String.join(", ", profiles.stream().map(GameProfile::getName).toList()))), true);
-                
-                if (!players.isEmpty()) {
-                    src.sendSuccess(() -> Component.nullToEmpty(
-                            String.format(TranslationUtils.getTranslation().skinActionAffectedPlayer,
-                                    String.join(", ", players.stream().map(p -> p.getGameProfile().getName()).toList()))), true);
+                if (!updatedPlayers.isEmpty()) {
+                    var playersComponent = Component.empty();
+                    int index = 0;
+                    for (var player : updatedPlayers) {
+                        playersComponent.append(Objects.requireNonNull(player.getDisplayName()));
+                        index++;
+                        if (index < updatedPlayers.size())
+                            playersComponent.append(", ");
+                    }
+                    
+                    src.sendSuccess(() -> TranslationUtils.translatableWithFallback(
+                            TranslationUtils.COMMAND_SKIN_AFFECTED_PLAYERS_KEY,
+                            playersComponent
+                    ), true);
                 }
             } else {
-                src.sendSuccess(() -> Component.nullToEmpty(TranslationUtils.getTranslation().skinActionOk), true);
+                src.sendSuccess(() -> TranslationUtils.translatableWithFallback(
+                        TranslationUtils.COMMAND_SKIN_OK_KEY
+                ), true);
             }
         });
+        
         return targets.size();
     }
     
-    private static int skinAction(CommandSourceStack src, Supplier<Result<Optional<Property>, ?>> skinSupplier) {
+    private static int skinAction(CommandSourceStack src, Supplier<Result<Optional<Property>, Exception>> skinSupplier) {
         if (src.getPlayer() == null)
             return 0;
         

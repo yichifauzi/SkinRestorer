@@ -2,7 +2,6 @@ package net.lionarius.skinrestorer;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import it.unimi.dsi.fastutil.Pair;
 import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinStorage;
 import net.lionarius.skinrestorer.skin.provider.MineskinSkinProvider;
@@ -63,34 +62,22 @@ public final class SkinRestorer {
         SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldSkinDirectory));
     }
     
-    public static CompletableFuture<Pair<Collection<ServerPlayer>, Collection<GameProfile>>> setSkinAsync(
+    public static CompletableFuture<Result<Collection<ServerPlayer>, String>> setSkinAsync(
             MinecraftServer server,
             Collection<GameProfile> targets,
-            Supplier<Result<Optional<Property>, ?>> skinSupplier
+            Supplier<Result<Optional<Property>, Exception>> skinSupplier
     ) {
-        return CompletableFuture.<Pair<Property, Collection<GameProfile>>>supplyAsync(() -> {
-                    var result = skinSupplier.get();
-                    if (result.isError()) {
-                        SkinRestorer.LOGGER.error("Could not get skin: {}", result.getErrorValue());
-                        return Pair.of(null, Collections.emptySet());
+        return CompletableFuture.supplyAsync(skinSupplier)
+                .thenApplyAsync(skinResult -> {
+                    if (skinResult.isError()) {
+                        return Result.<Collection<ServerPlayer>, String>error(skinResult.getErrorValue().getMessage());
                     }
                     
-                    Property skin = result.getSuccessValue().orElse(null);
+                    var skin = skinResult.getSuccessValue().orElse(null);
+                    HashSet<ServerPlayer> acceptedPlayers = new HashSet<>();
                     
                     for (GameProfile profile : targets) {
                         SkinRestorer.getSkinStorage().setSkin(profile.getId(), skin);
-                    }
-                    
-                    HashSet<GameProfile> acceptedProfiles = new HashSet<>(targets);
-                    
-                    return Pair.of(skin, acceptedProfiles);
-                }).<Pair<Collection<ServerPlayer>, Collection<GameProfile>>>thenApplyAsync(pair -> {
-                    Property skin = pair.left(); // NullPtrException will be caught by 'exceptionally'
-                    
-                    Collection<GameProfile> acceptedProfiles = pair.right();
-                    HashSet<ServerPlayer> acceptedPlayers = new HashSet<>();
-                    
-                    for (GameProfile profile : acceptedProfiles) {
                         ServerPlayer player = server.getPlayerList().getPlayer(profile.getId());
                         
                         if (player == null || PlayerUtils.areSkinPropertiesEquals(skin, PlayerUtils.getPlayerSkin(player)))
@@ -100,12 +87,13 @@ public final class SkinRestorer {
                         PlayerUtils.refreshPlayer(player);
                         acceptedPlayers.add(player);
                     }
-                    return Pair.of(acceptedPlayers, acceptedProfiles);
+                    return Result.<Collection<ServerPlayer>, String>success(acceptedPlayers);
                 }, server)
                 .orTimeout(10, TimeUnit.SECONDS)
                 .exceptionally(e -> {
-                    SkinRestorer.LOGGER.error(String.valueOf(e));
-                    return Pair.of(Collections.emptySet(), Collections.emptySet());
+                    var cause = String.valueOf(e);
+                    SkinRestorer.LOGGER.error(cause);
+                    return Result.error(cause);
                 });
     }
 }
