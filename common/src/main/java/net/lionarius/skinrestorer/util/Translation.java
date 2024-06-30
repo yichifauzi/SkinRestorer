@@ -17,11 +17,20 @@ public final class Translation {
     public static final String COMMAND_SKIN_OK_KEY = "skinrestorer.command.skin.ok";
     
     private static Map<String, String> translations;
+    private static final Map<String, String> fallback;
+    
+    static {
+        fallback = Translation.loadTranslationMap("en_us");
+    }
     
     private Translation() {}
     
     public static String get(String key) {
-        return translations.get(key);
+        var value = translations.get(key);
+        if (value == null)
+            value = fallback.get(key);
+        
+        return value;
     }
     
     public static MutableComponent translatableWithFallback(String key) {
@@ -33,28 +42,23 @@ public final class Translation {
     }
     
     public static void reloadTranslations() {
-        try {
-            translations = Translation.loadTranslationMap(SkinRestorer.getConfig().getLanguage());
-        } catch (Exception ex) {
-            SkinRestorer.LOGGER.error("Failed to load translation", ex);
-        }
-        
-        if (translations == null) {
-            try {
-                translations = Translation.loadTranslationMap("en_us");
-            } catch (Exception ex) {
-                SkinRestorer.LOGGER.error("Failed to default translation", ex);
-            }
-        }
-        
-        if (translations == null)
-            translations = new ImmutableMap.Builder<String, String>().build();
+        translations = Translation.loadTranslationMap(SkinRestorer.getConfig().getLanguage());
     }
     
     private static ImmutableMap<String, String> loadTranslationMap(String lang) {
         var json = FileUtils.readResource(SkinRestorer.resource(String.format("lang/%s.json", lang)));
         
         var type = new TypeToken<Map<String, String>>() {}.getType();
-        return ImmutableMap.copyOf((Map<String, String>) JsonUtils.fromJson(Objects.requireNonNull(json), type));
+        Map<String, String> map = null;
+        try {
+            map = JsonUtils.fromJson(Objects.requireNonNull(json), type);
+        } catch (Exception e) {
+            SkinRestorer.LOGGER.error("Failed to load translation map", e);
+        }
+        
+        if (map == null)
+            return ImmutableMap.<String, String>builder().build();
+        
+        return ImmutableMap.copyOf(map);
     }
 }
