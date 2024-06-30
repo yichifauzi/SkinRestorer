@@ -6,7 +6,7 @@ license = "MIT"
 [[mods]]
 modId = "skinrestorer"
 version = "${version}"
-displayName = "Skin Restorer"
+displayName = "SkinRestorer"
 authors = "Lionarius"
 logoFile = "assets/skinrestorer/icon.png"
 displayURL = "https://modrinth.com/mod/skinrestorer"

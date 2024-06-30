@@ -2,7 +2,7 @@
     "schemaVersion": 1,
     "id": "skinrestorer",
     "version": "${version}",
-    "name": "Skin Restorer",
+    "name": "SkinRestorer",
     "description": "A server-side mod for restoring skins on offline servers.",
     "authors": [
         "Lionarius"
