@@ -1,0 +1,5 @@
+{
+    "skinrestorer.command.skin.affected_players": "已为 %s 应用了皮肤更改",
+    "skinrestorer.command.skin.failed": "无法更改皮肤: %s",
+    "skinrestorer.command.skin.ok": "皮肤已更改"
+}

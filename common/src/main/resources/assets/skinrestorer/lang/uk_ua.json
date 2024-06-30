@@ -1,0 +1,5 @@
+{
+    "skinrestorer.command.skin.affected_players": "Зміни скіна застосовано для %s",
+    "skinrestorer.command.skin.failed": "Не вдалося змінити скіна: %s",
+    "skinrestorer.command.skin.ok": "Скін змінено"
+}

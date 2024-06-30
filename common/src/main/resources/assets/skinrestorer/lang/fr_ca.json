@@ -1,0 +1,5 @@
+{
+    "skinrestorer.command.skin.affected_players": "Modifications du skin appliquées pour %s",
+    "skinrestorer.command.skin.failed": "Échec du changement de skin: %s",
+    "skinrestorer.command.skin.ok": "Skin changé"
+}
