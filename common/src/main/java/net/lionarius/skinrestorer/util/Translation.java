@@ -13,8 +13,10 @@ public final class Translation {
     public static final String LEGACY_TRANSLATION_FILENAME = "translation";
     
     public static final String COMMAND_SKIN_AFFECTED_PLAYERS_KEY = "skinrestorer.command.skin.affected_players";
+    public static final String COMMAND_SKIN_NO_CHANGES_KEY = "skinrestorer.command.skin.no_changes";
     public static final String COMMAND_SKIN_FAILED_KEY = "skinrestorer.command.skin.failed";
     public static final String COMMAND_SKIN_OK_KEY = "skinrestorer.command.skin.ok";
+    public static final String COMMAND_SKIN_LOADING_KEY = "skinrestorer.command.skin.loading";
     
     private static Map<String, String> translations;
     private static final Map<String, String> fallback;

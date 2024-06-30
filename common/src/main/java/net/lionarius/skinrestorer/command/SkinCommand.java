@@ -107,6 +107,8 @@ public final class SkinCommand {
             boolean setByOperator,
             Supplier<Result<Optional<Property>, Exception>> skinSupplier
     ) {
+        src.sendSystemMessage(Translation.translatableWithFallback(Translation.COMMAND_SKIN_LOADING_KEY));
+        
         SkinRestorer.setSkinAsync(src.getServer(), targets, skinSupplier).thenAccept(result -> {
             if (result.isError()) {
                 src.sendFailure(Translation.translatableWithFallback(
@@ -118,22 +120,27 @@ public final class SkinCommand {
             
             var updatedPlayers = result.getSuccessValue();
             
+            if (updatedPlayers.isEmpty()) {
+                src.sendSuccess(() -> Translation.translatableWithFallback(
+                        Translation.COMMAND_SKIN_NO_CHANGES_KEY
+                ), true);
+                return;
+            }
+            
             if (setByOperator) {
-                if (!updatedPlayers.isEmpty()) {
-                    var playersComponent = Component.empty();
-                    int index = 0;
-                    for (var player : updatedPlayers) {
-                        playersComponent.append(Objects.requireNonNull(player.getDisplayName()));
-                        index++;
-                        if (index < updatedPlayers.size())
-                            playersComponent.append(", ");
-                    }
-                    
-                    src.sendSuccess(() -> Translation.translatableWithFallback(
-                            Translation.COMMAND_SKIN_AFFECTED_PLAYERS_KEY,
-                            playersComponent
-                    ), true);
+                var playersComponent = Component.empty();
+                int index = 0;
+                for (var player : updatedPlayers) {
+                    playersComponent.append(Objects.requireNonNull(player.getDisplayName()));
+                    index++;
+                    if (index < updatedPlayers.size())
+                        playersComponent.append(", ");
                 }
+                
+                src.sendSuccess(() -> Translation.translatableWithFallback(
+                        Translation.COMMAND_SKIN_AFFECTED_PLAYERS_KEY,
+                        playersComponent
+                ), true);
             } else {
                 src.sendSuccess(() -> Translation.translatableWithFallback(
                         Translation.COMMAND_SKIN_OK_KEY
@@ -144,7 +151,8 @@ public final class SkinCommand {
         return targets.size();
     }
     
-    private static int skinAction(CommandSourceStack src, Supplier<Result<Optional<Property>, Exception>> skinSupplier) {
+    private static int skinAction(CommandSourceStack
+            src, Supplier<Result<Optional<Property>, Exception>> skinSupplier) {
         if (src.getPlayer() == null)
             return 0;
         
