@@ -1,16 +1,16 @@
 pluginManagement {
     repositories {
         maven {
-            name = 'Architectury'
-            url = 'https://maven.architectury.dev/'
+            name = "Architectury"
+            url = "https://maven.architectury.dev/"
         }
         maven {
-            name = 'Fabric'
-            url = 'https://maven.fabricmc.net/'
+            name = "Fabric"
+            url = "https://maven.fabricmc.net/"
         }
         maven {
-            name = 'Forge'
-            url = 'https://files.minecraftforge.net/maven/'
+            name = "Forge"
+            url = "https://files.minecraftforge.net/maven/"
         }
         mavenCentral()
         gradlePluginPortal()
@@ -19,6 +19,6 @@ pluginManagement {
 
 rootProject.name = "skin-restorer"
 
-include 'common'
-include 'fabric'
-include 'neoforge'
+include "common"
+include "fabric"
+include "neoforge"

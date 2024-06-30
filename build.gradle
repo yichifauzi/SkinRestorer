@@ -1,7 +1,7 @@
 plugins {
-    id 'dev.architectury.loom' version '1.6-SNAPSHOT' apply false
-    id 'architectury-plugin' version '3.4-SNAPSHOT'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    id "dev.architectury.loom" version "1.6-SNAPSHOT" apply false
+    id "architectury-plugin" version "3.4-SNAPSHOT"
+    id "com.github.johnrengelman.shadow" version "8.1.1" apply false
     id "io.github.pacifistmc.forgix" version "1.2.9"
     id "me.shedaniel.unified-publishing" version "0.1.+"
 }
@@ -30,8 +30,8 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'dev.architectury.loom'
-    apply plugin: 'architectury-plugin'
+    apply plugin: "dev.architectury.loom"
+    apply plugin: "architectury-plugin"
     
     loom {
         silentMojangMappingsLicense()
@@ -46,8 +46,8 @@ subprojects {
 
     repositories {
         maven {
-            name = 'ParchmentMC'
-            url = 'https://maven.parchmentmc.org'
+            name = "ParchmentMC"
+            url = "https://maven.parchmentmc.org"
         }
     }
 
@@ -78,7 +78,7 @@ subprojects {
 }
 
 // Adapted from https://raw.githubusercontent.com/TerraformersMC/GradleScripts/2.7/ferry.gradle
-tasks.register('generateChangelog') {
+tasks.register("generateChangelog") {
     ext.changelog = ""
 
     def lastTag = previousTag
@@ -111,13 +111,13 @@ tasks.register('generateChangelog') {
     }
 }
 
-tasks.register('assertNewVersion') {
+tasks.register("assertNewVersion") {
     if (headTag == previousTag) {
         throw new GradleException("Current version $headTag is the same as previous. Please create a new version tag if you want to proceed.")
     }
 }
 
-tasks.publishUnified.dependsOn('assertNewVersion', 'build')
+tasks.publishUnified.dependsOn("assertNewVersion", "build")
 
 unifiedPublishing {
     project {
@@ -125,8 +125,8 @@ unifiedPublishing {
         version = project.version
         changelog = generateChangelog.changelog
         releaseType = "release"
-        gameVersions = List.of(project.game_versions.split(','))
-        gameLoaders = List.of(project.mod_loaders.split(','))
+        gameVersions = List.of(project.game_versions.split(","))
+        gameLoaders = List.of(project.mod_loaders.split(","))
 
         mainPublication.set(file("build/libs/merged/${project.archives_name}-${project.version}.jar"))
 
