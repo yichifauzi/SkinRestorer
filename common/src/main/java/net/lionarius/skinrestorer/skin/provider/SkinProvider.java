@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface SkinProvider {
     EmptySkinProvider EMPTY = new EmptySkinProvider();
     MojangSkinProvider MOJANG = new MojangSkinProvider();
+    ElyBySkinProvider ELY_BY = new ElyBySkinProvider();
     MineskinSkinProvider MINESKIN = new MineskinSkinProvider();
     
     String getArgumentName();

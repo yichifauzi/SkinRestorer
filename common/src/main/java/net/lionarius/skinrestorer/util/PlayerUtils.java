@@ -1,5 +1,6 @@
 package net.lionarius.skinrestorer.util;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -119,5 +120,26 @@ public final class PlayerUtils {
             return false;
         
         return xJson.equals(yJson);
+    }
+    
+    public static Property findTexturesProperty(JsonArray properties) {
+        Property textures = null;
+        for (var property : properties) {
+            var propertyObject = property.getAsJsonObject();
+            if (propertyObject == null)
+                continue;
+            
+            try {
+                textures = JsonUtils.fromJson(propertyObject, Property.class);
+                break;
+            } catch (Exception e) {
+                // ignored
+            }
+        }
+        
+        if (textures == null)
+            throw new IllegalStateException("no textures in profile");
+        
+        return textures;
     }
 }

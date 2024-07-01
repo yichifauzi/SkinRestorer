@@ -59,6 +59,7 @@ public final class SkinRestorer {
         
         SkinRestorer.providersRegistry.register(EmptySkinProvider.PROVIDER_NAME, SkinProvider.EMPTY, false);
         SkinRestorer.providersRegistry.register(MojangSkinProvider.PROVIDER_NAME, SkinProvider.MOJANG);
+        SkinRestorer.providersRegistry.register(ElyBySkinProvider.PROVIDER_NAME, SkinProvider.ELY_BY);
         SkinRestorer.providersRegistry.register(MineskinSkinProvider.PROVIDER_NAME, SkinProvider.MINESKIN);
     }
     

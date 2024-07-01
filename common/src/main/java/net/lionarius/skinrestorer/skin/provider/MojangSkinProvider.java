@@ -1,11 +1,11 @@
 package net.lionarius.skinrestorer.skin.provider;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.util.JsonUtils;
+import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.Result;
 import net.lionarius.skinrestorer.util.WebUtils;
 
@@ -52,33 +52,12 @@ public final class MojangSkinProvider implements SkinProvider {
             var profile = MojangSkinProvider.getMojangProfile(uuid);
             
             var properties = profile.getAsJsonArray("properties");
-            var textures = MojangSkinProvider.findTexturesProperty(properties);
+            var textures = PlayerUtils.findTexturesProperty(properties);
             
             return Result.ofNullable(textures);
         } catch (Exception e) {
             return Result.error(e);
         }
-    }
-    
-    private static Property findTexturesProperty(JsonArray properties) {
-        Property textures = null;
-        for (var property : properties) {
-            var propertyObject = property.getAsJsonObject();
-            if (propertyObject == null)
-                continue;
-            
-            try {
-                textures = JsonUtils.fromJson(propertyObject, Property.class);
-                break;
-            } catch (Exception e) {
-                // ignored
-            }
-        }
-        
-        if (textures == null)
-            throw new IllegalStateException("no textures in profile");
-        
-        return textures;
     }
     
     private static String getUuid(final String name) throws IOException {
