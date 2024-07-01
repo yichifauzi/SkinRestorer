@@ -22,6 +22,10 @@ public record SkinValue(@NotNull String provider, @Nullable String argument, @Nu
         return new SkinProviderContext(this.provider, this.argument, this.variant);
     }
     
+    public SkinValue replaceValueWithOriginal() {
+        return new SkinValue(this.provider, this.argument, this.variant, this.originalValue, this.originalValue);
+    }
+    
     public SkinValue setOriginalValue(Property originalValue) {
         return new SkinValue(this.provider, this.argument, this.variant, this.value, originalValue);
     }

@@ -37,6 +37,7 @@ public class SkinStorage {
     }
     
     public void deleteSkin(UUID uuid) {
+        this.removeSkin(uuid, false);
         this.skinIO.deleteSkin(uuid);
     }
     
