@@ -22,8 +22,7 @@ public final class FileUtils {
             
             File configDirectory = SkinRestorer.getConfigDir().toFile();
             File[] files = configDirectory.listFiles(
-                    (file, name) -> file.isFile()
-                                    && !name.startsWith(Translation.LEGACY_TRANSLATION_FILENAME)
+                    (root, name) -> !name.startsWith(Translation.LEGACY_TRANSLATION_FILENAME)
                                     && !name.startsWith(Config.CONFIG_FILENAME)
                                     && name.endsWith(SkinIO.FILE_EXTENSION)
             );
