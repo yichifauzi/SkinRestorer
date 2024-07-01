@@ -40,7 +40,8 @@ public final class SkinCommand {
                                 .executes(context -> resetAction(context.getSource()))
                                 .then(makeTargetsArgument(
                                         (context, profiles) -> resetAction(context.getSource(), profiles, true)
-                                )));
+                                )))
+                        .then(literal("refresh").executes(context -> refreshAction(context.getSource())));
         
         LiteralArgumentBuilder<CommandSourceStack> set = literal("set");
         
@@ -53,69 +54,15 @@ public final class SkinCommand {
         dispatcher.register(base);
     }
     
-    private static LiteralArgumentBuilder<CommandSourceStack> buildSetAction(String name, SkinProvider provider) {
-        LiteralArgumentBuilder<CommandSourceStack> action = literal(name);
+    private static int refreshAction(
+            CommandSourceStack src
+    ) {
+        var player = src.getPlayer();
+        if (player == null)
+            return 0;
         
-        if (provider.hasVariantSupport()) {
-            for (SkinVariant variant : SkinVariant.values()) {
-                action.then(
-                        literal(variant.toString())
-                                .then(buildSetArgument(
-                                        argument(provider.getArgumentName(), StringArgumentType.string()),
-                                        context -> {
-                                            var argument = StringArgumentType.getString(context, provider.getArgumentName());
-                                            return new SkinProviderContext(name, argument, variant);
-                                        }
-                                ))
-                );
-            }
-        } else {
-            action.then(
-                    buildSetArgument(
-                            argument(provider.getArgumentName(), StringArgumentType.string()),
-                            context -> {
-                                var argument = StringArgumentType.getString(context, provider.getArgumentName());
-                                return new SkinProviderContext(name, argument, null);
-                            }
-                    )
-            );
-        }
-        
-        return action;
-    }
-    
-    private static ArgumentBuilder<CommandSourceStack, LiteralArgumentBuilder<CommandSourceStack>> buildSetAction(
-            String name,
-            Supplier<SkinProviderContext> supplier
-    ) {
-        return buildSetArgument(literal(name), context -> supplier.get());
-    }
-    
-    private static <T extends ArgumentBuilder<CommandSourceStack, T>> ArgumentBuilder<CommandSourceStack, T> buildSetArgument(
-            ArgumentBuilder<CommandSourceStack, T> argument,
-            Function<CommandContext<CommandSourceStack>, SkinProviderContext> provider
-    ) {
-        return argument
-                .executes(context -> setAction(
-                        context.getSource(),
-                        provider.apply(context)
-                ))
-                .then(makeTargetsArgument(
-                        (context, targets) -> setAction(
-                                context.getSource(),
-                                targets,
-                                provider.apply(context),
-                                true
-                        )
-                ));
-    }
-    
-    private static RequiredArgumentBuilder<CommandSourceStack, GameProfileArgument.Result> makeTargetsArgument(
-            BiFunction<CommandContext<CommandSourceStack>, Collection<GameProfile>, Integer> consumer
-    ) {
-        return argument("targets", GameProfileArgument.gameProfile())
-                .requires(source -> source.hasPermission(2))
-                .executes(context -> consumer.apply(context, GameProfileArgument.getGameProfiles(context, "targets")));
+        var context = SkinRestorer.getSkinStorage().getSkin(player.getUUID()).toProviderContext();
+        return SkinCommand.setAction(src, Collections.singleton(player.getGameProfile()), context, false);
     }
     
     private static int resetAction(
@@ -207,5 +154,70 @@ public final class SkinCommand {
                     Translation.COMMAND_SKIN_OK_KEY
             ), true);
         }
+    }
+    
+    private static LiteralArgumentBuilder<CommandSourceStack> buildSetAction(String name, SkinProvider provider) {
+        LiteralArgumentBuilder<CommandSourceStack> action = literal(name);
+        
+        if (provider.hasVariantSupport()) {
+            for (SkinVariant variant : SkinVariant.values()) {
+                action.then(
+                        literal(variant.toString())
+                                .then(buildSetArgument(
+                                        argument(provider.getArgumentName(), StringArgumentType.string()),
+                                        context -> {
+                                            var argument = StringArgumentType.getString(context, provider.getArgumentName());
+                                            return new SkinProviderContext(name, argument, variant);
+                                        }
+                                ))
+                );
+            }
+        } else {
+            action.then(
+                    buildSetArgument(
+                            argument(provider.getArgumentName(), StringArgumentType.string()),
+                            context -> {
+                                var argument = StringArgumentType.getString(context, provider.getArgumentName());
+                                return new SkinProviderContext(name, argument, null);
+                            }
+                    )
+            );
+        }
+        
+        return action;
+    }
+    
+    private static ArgumentBuilder<CommandSourceStack, LiteralArgumentBuilder<CommandSourceStack>> buildSetAction(
+            String name,
+            Supplier<SkinProviderContext> supplier
+    ) {
+        return buildSetArgument(literal(name), context -> supplier.get());
+    }
+    
+    private static <T extends ArgumentBuilder<CommandSourceStack, T>> ArgumentBuilder<CommandSourceStack, T> buildSetArgument(
+            ArgumentBuilder<CommandSourceStack, T> argument,
+            Function<CommandContext<CommandSourceStack>, SkinProviderContext> provider
+    ) {
+        return argument
+                .executes(context -> setAction(
+                        context.getSource(),
+                        provider.apply(context)
+                ))
+                .then(makeTargetsArgument(
+                        (context, targets) -> setAction(
+                                context.getSource(),
+                                targets,
+                                provider.apply(context),
+                                true
+                        )
+                ));
+    }
+    
+    private static RequiredArgumentBuilder<CommandSourceStack, GameProfileArgument.Result> makeTargetsArgument(
+            BiFunction<CommandContext<CommandSourceStack>, Collection<GameProfile>, Integer> consumer
+    ) {
+        return argument("targets", GameProfileArgument.gameProfile())
+                .requires(source -> source.hasPermission(2))
+                .executes(context -> consumer.apply(context, GameProfileArgument.getGameProfiles(context, "targets")));
     }
 }
