@@ -59,6 +59,7 @@ public final class SkinRestorer {
     public static void onInitialize(Path rootConfigDir) {
         SkinRestorer.configDir = rootConfigDir.resolve(SkinRestorer.MOD_ID);
         
+        SkinRestorer.providersRegistry.register("empty", SkinProvider.EMPTY, false);
         SkinRestorer.providersRegistry.register("mojang", SkinProvider.MOJANG);
         SkinRestorer.providersRegistry.register("web", SkinProvider.MINESKIN);
     }

@@ -34,7 +34,7 @@ public final class SkinCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> base =
                 literal("skin")
-                        .then(buildAction("clear", () -> Result.ofNullable(null)));
+                        .then(buildAction("clear", SkinProvider.EMPTY::getSkin));
         
         LiteralArgumentBuilder<CommandSourceStack> set = literal("set");
         
