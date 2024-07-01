@@ -28,10 +28,9 @@ public final class FileUtils {
                            && name.endsWith(SkinIO.FILE_EXTENSION);
                 }).toList();
                 
-                if (!files.isEmpty()) {
-                    if (!Files.exists(newDirectory))
-                        Files.createDirectories(newDirectory);
-                }
+                if (!files.isEmpty() && !Files.exists(newDirectory))
+                    Files.createDirectories(newDirectory);
+                
                 
                 for (var file : files)
                     Files.move(file, newDirectory.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
