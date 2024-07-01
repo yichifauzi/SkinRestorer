@@ -134,9 +134,8 @@ public final class SkinRestorer {
                 }, server)
                 .orTimeout(10, TimeUnit.SECONDS)
                 .exceptionally(e -> {
-                    var cause = String.valueOf(e);
-                    SkinRestorer.LOGGER.error(cause);
-                    return Result.error(cause);
+                    SkinRestorer.LOGGER.error(e.toString());
+                    return Result.error(e.getMessage());
                 });
     }
 }
