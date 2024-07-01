@@ -3,9 +3,12 @@ package net.lionarius.skinrestorer.mixin;
 import com.mojang.authlib.GameProfile;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.skin.SkinValue;
+import net.lionarius.skinrestorer.skin.provider.SkinProviderContext;
 import net.lionarius.skinrestorer.util.Result;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -20,6 +23,8 @@ public abstract class ServerLoginPacketListenerImplMixin {
     
     @Shadow @Nullable
     private GameProfile authenticatedProfile;
+    @Shadow @Final
+    MinecraftServer server;
     
     @Unique
     private CompletableFuture<Void> skinrestorer_pendingSkin;
@@ -33,20 +38,22 @@ public abstract class ServerLoginPacketListenerImplMixin {
                 assert authenticatedProfile != null;
                 SkinRestorer.LOGGER.debug("Fetching {}'s skin", authenticatedProfile.getName());
                 
-                if (SkinRestorer.getConfig().fetchSkinOnFirstJoin() && !SkinRestorer.getSkinStorage().hasSavedSkin(authenticatedProfile.getId())) { // when player joins for the first time fetch Mojang skin by his username
-                    var result = SkinRestorer.getProvider("mojang").map(
-                            provider -> provider.getSkin(authenticatedProfile.getName(), null)
+                if (SkinRestorer.getSkinStorage().hasSavedSkin(authenticatedProfile.getId()))
+                    return null;
+                
+                if (!server.enforceSecureProfile() && SkinRestorer.getConfig().fetchSkinOnFirstJoin()) { // fetch from mojang provider by username
+                    var context = new SkinProviderContext("mojang", authenticatedProfile.getName(), null);
+                    var result = SkinRestorer.getProvider(context.name()).map(
+                            provider -> provider.getSkin(context.argument(), context.variant())
                     ).orElse(Result.ofNullable(null));
                     
                     if (!result.isError()) {
-                        var value = new SkinValue("mojang", authenticatedProfile.getName(), null, result.getSuccessValue().orElse(null));
+                        var value = SkinValue.fromProviderContextWithValue(context, result.getSuccessValue().orElse(null));
                         SkinRestorer.getSkinStorage().setSkin(authenticatedProfile.getId(), value);
                     } else {
                         SkinRestorer.LOGGER.error("failed to fetch skin on first join", result.getErrorValue());
                     }
                 }
-                
-                SkinRestorer.getSkinStorage().getSkin(authenticatedProfile.getId());
                 
                 return null;
             });

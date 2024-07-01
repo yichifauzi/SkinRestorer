@@ -39,6 +39,7 @@ public abstract class PlayerListMixin {
     
     @Inject(method = "placeNewPlayer", at = @At("HEAD"))
     private void placeNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
-        SkinRestorer.applySkin(server, Collections.singleton(player.getGameProfile()), SkinRestorer.getSkinStorage().getSkin(player.getUUID()));
+        if (SkinRestorer.getSkinStorage().hasSavedSkin(player.getUUID()))
+            SkinRestorer.applySkin(server, Collections.singleton(player.getGameProfile()), SkinRestorer.getSkinStorage().getSkin(player.getUUID()));
     }
 }
