@@ -20,12 +20,12 @@ public class SkinIO {
     }
     
     public boolean skinExists(UUID uuid) {
-        return Files.exists(savePath.resolve(uuid + FILE_EXTENSION));
+        return Files.exists(savePath.resolve(SkinIO.uuidToFilename(uuid)));
     }
     
     public SkinValue loadSkin(UUID uuid) {
         try {
-            var value = SkinIO.loadSkin(savePath.resolve(uuid + FILE_EXTENSION));
+            var value = SkinIO.loadSkin(savePath.resolve(SkinIO.uuidToFilename(uuid)));
             Objects.requireNonNull(value.provider());
             return value;
         } catch (Exception e) {
@@ -44,11 +44,15 @@ public class SkinIO {
     }
     
     public void saveSkin(UUID uuid, SkinValue skin) {
-        FileUtils.writeFile(savePath, uuid + FILE_EXTENSION, JsonUtils.toJson(skin));
+        FileUtils.writeFile(savePath.resolve(SkinIO.uuidToFilename(uuid)), JsonUtils.toJson(skin));
     }
     
-    public void removeSkin(UUID uuid) {
-        
+    public void deleteSkin(UUID uuid) {
+        FileUtils.deleteFile(savePath.resolve(SkinIO.uuidToFilename(uuid)));
+    }
+    
+    private static String uuidToFilename(UUID uuid) {
+        return uuid + FILE_EXTENSION;
     }
     
     private static SkinValue convertFromOldFormat(Property property) {

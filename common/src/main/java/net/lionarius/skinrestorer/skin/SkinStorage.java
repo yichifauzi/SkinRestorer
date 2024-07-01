@@ -26,10 +26,18 @@ public class SkinStorage {
         return skinMap.get(uuid);
     }
     
-    public void removeSkin(UUID uuid) {
+    public void removeSkin(UUID uuid, boolean save) {
         var skin = skinMap.remove(uuid);
-        if (skin != null)
+        if (skin != null && save)
             skinIO.saveSkin(uuid, skin);
+    }
+    
+    public void removeSkin(UUID uuid) {
+        this.removeSkin(uuid, true);
+    }
+    
+    public void deleteSkin(UUID uuid) {
+        this.skinIO.deleteSkin(uuid);
     }
     
     public void setSkin(UUID uuid, SkinValue skin) {

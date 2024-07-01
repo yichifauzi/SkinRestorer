@@ -62,11 +62,11 @@ public final class FileUtils {
         }
     }
     
-    public static void writeFile(Path path, String fileName, String content) {
+    public static void writeFile(Path file, String content) {
         try {
-            Files.createDirectories(path);
-            
-            var file = path.resolve(fileName);
+            var root = file.getRoot();
+            if (root != null)
+                Files.createDirectories(root);
             
             if (!Files.exists(file))
                 Files.createFile(file);
@@ -74,6 +74,15 @@ public final class FileUtils {
             Files.writeString(file, content);
         } catch (IOException e) {
             SkinRestorer.LOGGER.error("failed to write file", e);
+        }
+    }
+    
+    public static void deleteFile(Path file) {
+        try {
+            if (Files.exists(file))
+                Files.delete(file);
+        } catch (IOException e) {
+            SkinRestorer.LOGGER.error("failed to delete file", e);
         }
     }
 }

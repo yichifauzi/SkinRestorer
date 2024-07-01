@@ -38,7 +38,7 @@ public final class Config {
             config = new Config();
         }
         
-        FileUtils.writeFile(path, Config.CONFIG_FILENAME, JsonUtils.toJson(config));
+        FileUtils.writeFile(path.resolve(Config.CONFIG_FILENAME), JsonUtils.toJson(config));
         
         return config;
     }
