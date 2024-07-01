@@ -14,7 +14,7 @@ public class SkinStorage {
     }
     
     public boolean hasSavedSkin(UUID uuid) {
-        return this.skinIO.skinExists(uuid);
+        return this.skinMap.containsKey(uuid) || this.skinIO.skinExists(uuid);
     }
     
     public SkinValue getSkin(UUID uuid) {
