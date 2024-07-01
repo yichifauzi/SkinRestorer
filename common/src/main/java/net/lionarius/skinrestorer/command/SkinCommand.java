@@ -11,15 +11,14 @@ import com.mojang.brigadier.context.CommandContext;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
+import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.Result;
 import net.lionarius.skinrestorer.util.Translation;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.GameProfileArgument;
-import net.minecraft.network.chat.Component;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -131,14 +130,7 @@ public final class SkinCommand {
             }
             
             if (setByOperator) {
-                var playersComponent = Component.empty();
-                int index = 0;
-                for (var player : updatedPlayers) {
-                    playersComponent.append(Objects.requireNonNull(player.getDisplayName()));
-                    index++;
-                    if (index < updatedPlayers.size())
-                        playersComponent.append(", ");
-                }
+                var playersComponent = PlayerUtils.createPlayerListComponent(updatedPlayers);
                 
                 src.sendSuccess(() -> Translation.translatableWithFallback(
                         Translation.COMMAND_SKIN_AFFECTED_PLAYERS_KEY,
@@ -161,4 +153,6 @@ public final class SkinCommand {
         
         return skinAction(src, Collections.singleton(src.getPlayer().getGameProfile()), false, skinSupplier);
     }
+    
+    
 }

@@ -5,20 +5,35 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.mixin.ChunkMapAccessor;
 import net.lionarius.skinrestorer.mixin.TrackedEntityMixin;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public final class PlayerUtils {
     
     public static final String TEXTURES_KEY = "textures";
     
     private PlayerUtils() {}
+    
+    public static Component createPlayerListComponent(Collection<ServerPlayer> players) {
+        var component = Component.empty();
+        int index = 0;
+        for (var player : players) {
+            component.append(Objects.requireNonNull(player.getDisplayName()));
+            index++;
+            if (index < players.size())
+                component.append(", ");
+        }
+        return component;
+    }
     
     public static boolean isFakePlayer(ServerPlayer player) {
         return player.getClass() != ServerPlayer.class; // if the player isn't a server player entity, it must be someone's fake player
