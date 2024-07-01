@@ -1,9 +1,6 @@
 package net.lionarius.skinrestorer.util;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.SkinRestorer;
 
@@ -18,6 +15,10 @@ public final class JsonUtils {
     private JsonUtils() {}
     
     public static <T> T fromJson(String json, Class<T> clazz) {
+        return GSON.fromJson(json, clazz);
+    }
+    
+    public static <T> T fromJson(JsonElement json, Class<T> clazz) {
         return GSON.fromJson(json, clazz);
     }
     
