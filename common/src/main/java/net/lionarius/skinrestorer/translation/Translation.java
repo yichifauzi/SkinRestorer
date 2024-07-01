@@ -1,8 +1,10 @@
-package net.lionarius.skinrestorer.util;
+package net.lionarius.skinrestorer.translation;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import net.lionarius.skinrestorer.SkinRestorer;
+import net.lionarius.skinrestorer.util.FileUtils;
+import net.lionarius.skinrestorer.util.JsonUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 

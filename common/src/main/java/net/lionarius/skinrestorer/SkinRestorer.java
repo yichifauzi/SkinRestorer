@@ -9,7 +9,7 @@ import net.lionarius.skinrestorer.skin.provider.*;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.Result;
-import net.lionarius.skinrestorer.util.Translation;
+import net.lionarius.skinrestorer.translation.Translation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
