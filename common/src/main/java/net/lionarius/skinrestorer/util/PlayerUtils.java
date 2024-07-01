@@ -84,12 +84,11 @@ public final class PlayerUtils {
         }
     }
     
-    public static Property getPlayerSkin(ServerPlayer player) {
-        return player.getGameProfile().getProperties().get(TEXTURES_KEY).stream().findFirst().orElse(null);
+    public static Property getPlayerSkin(GameProfile profile) {
+        return profile.getProperties().get(TEXTURES_KEY).stream().findFirst().orElse(null);
     }
     
-    public static void applyRestoredSkin(ServerPlayer player, Property skin) {
-        GameProfile profile = player.getGameProfile();
+    public static void applyRestoredSkin(GameProfile profile, Property skin) {
         profile.getProperties().removeAll(TEXTURES_KEY);
         
         if (skin != null)

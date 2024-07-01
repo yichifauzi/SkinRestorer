@@ -1,7 +1,6 @@
 package net.lionarius.skinrestorer.command;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -11,15 +10,14 @@ import com.mojang.brigadier.context.CommandContext;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
+import net.lionarius.skinrestorer.skin.provider.SkinProviderContext;
 import net.lionarius.skinrestorer.util.PlayerUtils;
-import net.lionarius.skinrestorer.util.Result;
 import net.lionarius.skinrestorer.util.Translation;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.GameProfileArgument;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -33,7 +31,7 @@ public final class SkinCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> base =
                 literal("skin")
-                        .then(buildAction("clear", SkinProvider.EMPTY::getSkin));
+                        .then(buildAction("clear", () -> new SkinProviderContext("empty", null, null)));
         
         LiteralArgumentBuilder<CommandSourceStack> set = literal("set");
         
@@ -55,15 +53,20 @@ public final class SkinCommand {
                         literal(variant.toString())
                                 .then(buildArgument(
                                         argument(provider.getArgumentName(), StringArgumentType.string()),
-                                        context -> provider.getSkin(StringArgumentType.getString(context, provider.getArgumentName()), variant)
+                                        context -> {
+                                            var argument = StringArgumentType.getString(context, provider.getArgumentName());
+                                            return new SkinProviderContext(name, argument, variant);
+                                        }
                                 ))
                 );
             }
         } else {
             action.then(
                     buildArgument(
-                            argument(provider.getArgumentName(), StringArgumentType.string()),
-                            context -> provider.getSkin(StringArgumentType.getString(context, provider.getArgumentName()), SkinVariant.CLASSIC)
+                            argument(provider.getArgumentName(), StringArgumentType.string()), context -> {
+                                var argument = StringArgumentType.getString(context, provider.getArgumentName());
+                                return new SkinProviderContext(name, argument, null);
+                            }
                     )
             );
         }
@@ -73,45 +76,45 @@ public final class SkinCommand {
     
     private static ArgumentBuilder<CommandSourceStack, LiteralArgumentBuilder<CommandSourceStack>> buildAction(
             String name,
-            Supplier<Result<Optional<Property>, Exception>> supplier
+            Supplier<SkinProviderContext> supplier
     ) {
         return buildArgument(literal(name), context -> supplier.get());
     }
     
     private static <T extends ArgumentBuilder<CommandSourceStack, T>> ArgumentBuilder<CommandSourceStack, T> buildArgument(
             ArgumentBuilder<CommandSourceStack, T> argument,
-            Function<CommandContext<CommandSourceStack>, Result<Optional<Property>, Exception>> provider
+            Function<CommandContext<CommandSourceStack>, SkinProviderContext> provider
     ) {
         return argument
                 .executes(context -> skinAction(
                         context.getSource(),
-                        () -> provider.apply(context)
+                        provider.apply(context)
                 ))
                 .then(makeTargetsArgument(provider));
     }
     
     private static RequiredArgumentBuilder<CommandSourceStack, GameProfileArgument.Result> makeTargetsArgument(
-            Function<CommandContext<CommandSourceStack>, Result<Optional<Property>, Exception>> provider
+            Function<CommandContext<CommandSourceStack>, SkinProviderContext> provider
     ) {
         return argument("targets", GameProfileArgument.gameProfile())
                 .requires(source -> source.hasPermission(2))
                 .executes(context -> skinAction(
+                        provider.apply(context),
                         context.getSource(),
                         GameProfileArgument.getGameProfiles(context, "targets"),
-                        true,
-                        () -> provider.apply(context)
+                        true
                 ));
     }
     
     private static int skinAction(
+            SkinProviderContext context,
             CommandSourceStack src,
             Collection<GameProfile> targets,
-            boolean setByOperator,
-            Supplier<Result<Optional<Property>, Exception>> skinSupplier
+            boolean setByOperator
     ) {
         src.sendSystemMessage(Translation.translatableWithFallback(Translation.COMMAND_SKIN_LOADING_KEY));
         
-        SkinRestorer.setSkinAsync(src.getServer(), targets, skinSupplier).thenAccept(result -> {
+        SkinRestorer.setSkinAsync(src.getServer(), targets, context).thenAccept(result -> {
             if (result.isError()) {
                 src.sendFailure(Translation.translatableWithFallback(
                         Translation.COMMAND_SKIN_FAILED_KEY,
@@ -146,12 +149,14 @@ public final class SkinCommand {
         return targets.size();
     }
     
-    private static int skinAction(CommandSourceStack
-            src, Supplier<Result<Optional<Property>, Exception>> skinSupplier) {
+    private static int skinAction(
+            CommandSourceStack src,
+            SkinProviderContext context
+    ) {
         if (src.getPlayer() == null)
             return 0;
         
-        return skinAction(src, Collections.singleton(src.getPlayer().getGameProfile()), false, skinSupplier);
+        return skinAction(context, src, Collections.singleton(src.getPlayer().getGameProfile()), false);
     }
     
     

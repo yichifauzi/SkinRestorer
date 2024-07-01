@@ -2,7 +2,7 @@ package net.lionarius.skinrestorer.mixin;
 
 import com.mojang.authlib.GameProfile;
 import net.lionarius.skinrestorer.SkinRestorer;
-import net.lionarius.skinrestorer.skin.SkinVariant;
+import net.lionarius.skinrestorer.skin.SkinValue;
 import net.lionarius.skinrestorer.util.Result;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
 import org.jetbrains.annotations.Nullable;
@@ -35,11 +35,15 @@ public abstract class ServerLoginPacketListenerImplMixin {
                 
                 if (SkinRestorer.getConfig().fetchSkinOnFirstJoin() && !SkinRestorer.getSkinStorage().hasSavedSkin(authenticatedProfile.getId())) { // when player joins for the first time fetch Mojang skin by his username
                     var result = SkinRestorer.getProvider("mojang").map(
-                            provider -> provider.getSkin(authenticatedProfile.getName(), SkinVariant.CLASSIC)
+                            provider -> provider.getSkin(authenticatedProfile.getName(), null)
                     ).orElse(Result.ofNullable(null));
                     
-                    if (!result.isError())
-                        SkinRestorer.getSkinStorage().setSkin(authenticatedProfile.getId(), result.getSuccessValue().orElse(null));
+                    if (!result.isError()) {
+                        var value = new SkinValue("mojang", authenticatedProfile.getName(), null, result.getSuccessValue().orElse(null));
+                        SkinRestorer.getSkinStorage().setSkin(authenticatedProfile.getId(), value);
+                    } else {
+                        SkinRestorer.LOGGER.error("failed to fetch skin on first join", result.getErrorValue());
+                    }
                 }
                 
                 SkinRestorer.getSkinStorage().getSkin(authenticatedProfile.getId());

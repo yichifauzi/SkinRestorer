@@ -1,7 +1,6 @@
 package net.lionarius.skinrestorer.mixin;
 
 import net.lionarius.skinrestorer.SkinRestorer;
-import net.lionarius.skinrestorer.util.Result;
 import net.minecraft.network.Connection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -40,6 +39,6 @@ public abstract class PlayerListMixin {
     
     @Inject(method = "placeNewPlayer", at = @At("HEAD"))
     private void placeNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
-        SkinRestorer.setSkinAsync(server, Collections.singleton(player.getGameProfile()), () -> Result.ofNullable(SkinRestorer.getSkinStorage().getSkin(player.getUUID())));
+        SkinRestorer.applySkin(server, Collections.singleton(player.getGameProfile()), SkinRestorer.getSkinStorage().getSkin(player.getUUID()));
     }
 }

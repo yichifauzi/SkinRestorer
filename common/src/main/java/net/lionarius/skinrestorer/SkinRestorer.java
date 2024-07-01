@@ -1,11 +1,12 @@
 package net.lionarius.skinrestorer;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.config.Config;
 import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinStorage;
+import net.lionarius.skinrestorer.skin.SkinValue;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
+import net.lionarius.skinrestorer.skin.provider.SkinProviderContext;
 import net.lionarius.skinrestorer.skin.provider.SkinProviderRegistry;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
@@ -23,7 +24,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 public final class SkinRestorer {
     public static final String MOD_ID = "skinrestorer";
@@ -81,31 +81,48 @@ public final class SkinRestorer {
         return String.format("/assets/%s/%s", SkinRestorer.MOD_ID, name);
     }
     
+    public static Collection<ServerPlayer> applySkin(MinecraftServer server, Iterable<GameProfile> targets, SkinValue value) {
+        var acceptedPlayers = new HashSet<ServerPlayer>();
+        
+        for (var profile : targets) {
+            SkinRestorer.getSkinStorage().setSkin(profile.getId(), value);
+            
+            if (PlayerUtils.areSkinPropertiesEquals(value.value(), PlayerUtils.getPlayerSkin(profile)))
+                continue;
+            
+            PlayerUtils.applyRestoredSkin(profile, value.value());
+            
+            var player = server.getPlayerList().getPlayer(profile.getId());
+            if (player == null)
+                continue;
+            
+            PlayerUtils.refreshPlayer(player);
+            acceptedPlayers.add(player);
+        }
+        
+        return acceptedPlayers;
+    }
+    
     public static CompletableFuture<Result<Collection<ServerPlayer>, String>> setSkinAsync(
             MinecraftServer server,
             Collection<GameProfile> targets,
-            Supplier<Result<Optional<Property>, Exception>> skinSupplier
+            SkinProviderContext context
     ) {
-        return CompletableFuture.supplyAsync(skinSupplier)
-                .thenApplyAsync(skinResult -> {
-                    if (skinResult.isError()) {
+        return CompletableFuture.supplyAsync(
+                        () -> SkinRestorer.getProvider(context.name()).map(provider -> provider.getSkin(context.argument(), context.variant()))
+                )
+                .thenApplyAsync(result -> {
+                    if (result.isEmpty())
+                        throw new IllegalArgumentException("provider " + context.argument() + " is not registered");
+                    
+                    var skinResult = result.get();
+                    if (skinResult.isError())
                         return Result.<Collection<ServerPlayer>, String>error(skinResult.getErrorValue().getMessage());
-                    }
                     
-                    var skin = skinResult.getSuccessValue().orElse(null);
-                    HashSet<ServerPlayer> acceptedPlayers = new HashSet<>();
+                    var skinValue = SkinValue.fromProviderContextWithValue(context, skinResult.getSuccessValue().orElse(null));
                     
-                    for (GameProfile profile : targets) {
-                        SkinRestorer.getSkinStorage().setSkin(profile.getId(), skin);
-                        ServerPlayer player = server.getPlayerList().getPlayer(profile.getId());
-                        
-                        if (player == null || PlayerUtils.areSkinPropertiesEquals(skin, PlayerUtils.getPlayerSkin(player)))
-                            continue;
-                        
-                        PlayerUtils.applyRestoredSkin(player, skin);
-                        PlayerUtils.refreshPlayer(player);
-                        acceptedPlayers.add(player);
-                    }
+                    var acceptedPlayers = SkinRestorer.applySkin(server, targets, skinValue);
+                    
                     return Result.<Collection<ServerPlayer>, String>success(acceptedPlayers);
                 }, server)
                 .orTimeout(10, TimeUnit.SECONDS)
