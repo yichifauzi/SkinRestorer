@@ -35,26 +35,26 @@ public final class SkinCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> base =
                 literal("skin")
-                        .then(buildSetAction("clear", SkinValue.EMPTY::toProviderContext))
+                        .then(buildSetSubcommand("clear", SkinValue.EMPTY::toProviderContext))
                         .then(literal("reset")
-                                .executes(context -> resetAction(context.getSource()))
+                                .executes(context -> resetSubcommand(context.getSource()))
                                 .then(makeTargetsArgument(
-                                        (context, profiles) -> resetAction(context.getSource(), profiles, true)
+                                        (context, profiles) -> resetSubcommand(context.getSource(), profiles, true)
                                 )))
-                        .then(literal("refresh").executes(context -> refreshAction(context.getSource())));
+                        .then(literal("refresh").executes(context -> refreshSubcommand(context.getSource())));
         
         LiteralArgumentBuilder<CommandSourceStack> set = literal("set");
         
         var providers = SkinRestorer.getProvidersRegistry().getPublicProviders();
         for (var entry : providers)
-            set.then(buildSetAction(entry.first(), entry.second()));
+            set.then(buildSetSubcommand(entry.first(), entry.second()));
         
         base.then(set);
         
         dispatcher.register(base);
     }
     
-    private static int refreshAction(
+    private static int refreshSubcommand(
             CommandSourceStack src
     ) {
         var player = src.getPlayer();
@@ -62,10 +62,10 @@ public final class SkinCommand {
             return 0;
         
         var context = SkinRestorer.getSkinStorage().getSkin(player.getUUID()).toProviderContext();
-        return SkinCommand.setAction(src, Collections.singleton(player.getGameProfile()), context, false);
+        return SkinCommand.setSubcommand(src, Collections.singleton(player.getGameProfile()), context, false);
     }
     
-    private static int resetAction(
+    private static int resetSubcommand(
             CommandSourceStack src,
             Collection<GameProfile> targets,
             boolean setByOperator
@@ -90,16 +90,16 @@ public final class SkinCommand {
         return targets.size();
     }
     
-    private static int resetAction(
+    private static int resetSubcommand(
             CommandSourceStack src
     ) {
         if (src.getPlayer() == null)
             return 0;
         
-        return resetAction(src, Collections.singleton(src.getPlayer().getGameProfile()), false);
+        return resetSubcommand(src, Collections.singleton(src.getPlayer().getGameProfile()), false);
     }
     
-    private static int setAction(
+    private static int setSubcommand(
             CommandSourceStack src,
             Collection<GameProfile> targets,
             SkinProviderContext context,
@@ -124,14 +124,14 @@ public final class SkinCommand {
         return targets.size();
     }
     
-    private static int setAction(
+    private static int setSubcommand(
             CommandSourceStack src,
             SkinProviderContext context
     ) {
         if (src.getPlayer() == null)
             return 0;
         
-        return setAction(src, Collections.singleton(src.getPlayer().getGameProfile()), context, false);
+        return setSubcommand(src, Collections.singleton(src.getPlayer().getGameProfile()), context, false);
     }
     
     private static void sendResponse(CommandSourceStack src, Collection<ServerPlayer> updatedPlayers, boolean setByOperator) {
@@ -156,14 +156,14 @@ public final class SkinCommand {
         }
     }
     
-    private static LiteralArgumentBuilder<CommandSourceStack> buildSetAction(String name, SkinProvider provider) {
+    private static LiteralArgumentBuilder<CommandSourceStack> buildSetSubcommand(String name, SkinProvider provider) {
         LiteralArgumentBuilder<CommandSourceStack> action = literal(name);
         
         if (provider.hasVariantSupport()) {
             for (SkinVariant variant : SkinVariant.values()) {
                 action.then(
                         literal(variant.toString())
-                                .then(buildSetArgument(
+                                .then(buildSetSubcommandArgument(
                                         argument(provider.getArgumentName(), StringArgumentType.string()),
                                         context -> {
                                             var argument = StringArgumentType.getString(context, provider.getArgumentName());
@@ -174,7 +174,7 @@ public final class SkinCommand {
             }
         } else {
             action.then(
-                    buildSetArgument(
+                    buildSetSubcommandArgument(
                             argument(provider.getArgumentName(), StringArgumentType.string()),
                             context -> {
                                 var argument = StringArgumentType.getString(context, provider.getArgumentName());
@@ -187,24 +187,24 @@ public final class SkinCommand {
         return action;
     }
     
-    private static ArgumentBuilder<CommandSourceStack, LiteralArgumentBuilder<CommandSourceStack>> buildSetAction(
+    private static ArgumentBuilder<CommandSourceStack, LiteralArgumentBuilder<CommandSourceStack>> buildSetSubcommand(
             String name,
             Supplier<SkinProviderContext> supplier
     ) {
-        return buildSetArgument(literal(name), context -> supplier.get());
+        return buildSetSubcommandArgument(literal(name), context -> supplier.get());
     }
     
-    private static <T extends ArgumentBuilder<CommandSourceStack, T>> ArgumentBuilder<CommandSourceStack, T> buildSetArgument(
+    private static <T extends ArgumentBuilder<CommandSourceStack, T>> ArgumentBuilder<CommandSourceStack, T> buildSetSubcommandArgument(
             ArgumentBuilder<CommandSourceStack, T> argument,
             Function<CommandContext<CommandSourceStack>, SkinProviderContext> provider
     ) {
         return argument
-                .executes(context -> setAction(
+                .executes(context -> setSubcommand(
                         context.getSource(),
                         provider.apply(context)
                 ))
                 .then(makeTargetsArgument(
-                        (context, targets) -> setAction(
+                        (context, targets) -> setSubcommand(
                                 context.getSource(),
                                 targets,
                                 provider.apply(context),
