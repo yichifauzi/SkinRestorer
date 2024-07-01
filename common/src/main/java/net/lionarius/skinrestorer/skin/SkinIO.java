@@ -4,7 +4,7 @@ import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.JsonUtils;
 
-import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.UUID;
@@ -20,12 +20,12 @@ public class SkinIO {
     }
     
     public boolean skinExists(UUID uuid) {
-        return savePath.resolve(uuid + FILE_EXTENSION).toFile().exists();
+        return Files.exists(savePath.resolve(uuid + FILE_EXTENSION));
     }
     
     public SkinValue loadSkin(UUID uuid) {
         try {
-            var value = SkinIO.loadSkin(savePath.resolve(uuid + FILE_EXTENSION).toFile());
+            var value = SkinIO.loadSkin(savePath.resolve(uuid + FILE_EXTENSION));
             Objects.requireNonNull(value.provider());
             return value;
         } catch (Exception e) {
@@ -33,7 +33,7 @@ public class SkinIO {
         }
     }
     
-    private static SkinValue loadSkin(File file) {
+    private static SkinValue loadSkin(Path file) {
         var json = FileUtils.readFile(file);
         try {
             return JsonUtils.fromJson(json, SkinValue.class);
@@ -44,7 +44,11 @@ public class SkinIO {
     }
     
     public void saveSkin(UUID uuid, SkinValue skin) {
-        FileUtils.writeFile(savePath.toFile(), uuid + FILE_EXTENSION, JsonUtils.toJson(skin));
+        FileUtils.writeFile(savePath, uuid + FILE_EXTENSION, JsonUtils.toJson(skin));
+    }
+    
+    public void removeSkin(UUID uuid) {
+        
     }
     
     private static SkinValue convertFromOldFormat(Property property) {

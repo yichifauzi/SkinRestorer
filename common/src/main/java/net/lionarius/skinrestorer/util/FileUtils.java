@@ -4,7 +4,9 @@ import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.config.Config;
 import net.lionarius.skinrestorer.skin.SkinIO;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,25 +18,24 @@ public final class FileUtils {
     
     public static void tryMigrateOldSkinDirectory(Path newDirectory) {
         try {
-            File newDirectoryFile = newDirectory.toFile();
-            if (!newDirectoryFile.exists())
-                newDirectoryFile.mkdirs();
+            if (!Files.exists(newDirectory))
+                Files.createDirectories(newDirectory);
             
-            File configDirectory = SkinRestorer.getConfigDir().toFile();
-            File[] files = configDirectory.listFiles(
-                    (root, name) -> !name.startsWith(Translation.LEGACY_TRANSLATION_FILENAME)
-                                    && !name.startsWith(Config.CONFIG_FILENAME)
-                                    && name.endsWith(SkinIO.FILE_EXTENSION)
-            );
-            if (files == null)
-                return;
-            
-            for (File file : files) {
-                if (file.isFile())
-                    Files.move(file.toPath(), newDirectory.resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
+            var configDirectory = SkinRestorer.getConfigDir();
+            try (var stream = Files.list(configDirectory)) {
+                var files = stream.filter(file -> {
+                    var name = file.getFileName();
+                    return Files.isRegularFile(file)
+                           && !name.startsWith(Translation.LEGACY_TRANSLATION_FILENAME)
+                           && !name.startsWith(Config.CONFIG_FILENAME)
+                           && name.endsWith(SkinIO.FILE_EXTENSION);
+                }).toList();
+                
+                for (var file : files)
+                    Files.move(file, newDirectory.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (Exception e) {
-            SkinRestorer.LOGGER.error("Could not migrate skin directory", e);
+            SkinRestorer.LOGGER.error("could not migrate skin directory", e);
         }
     }
     
@@ -47,33 +48,32 @@ public final class FileUtils {
                 return StringUtils.readString(reader);
             }
         } catch (IOException e) {
+            SkinRestorer.LOGGER.error("failed to read resource", e);
             return null;
         }
     }
     
-    public static String readFile(File file) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
-            return StringUtils.readString(reader);
-        } catch (IOException e) {
-            return null;
-        }
-    }
-    
-    public static boolean writeFile(File path, String fileName, String content) {
+    public static String readFile(Path file) {
         try {
-            if (!path.exists())
-                path.mkdirs();
+            return Files.readString(file);
+        } catch (Exception e) {
+            SkinRestorer.LOGGER.error("failed to read file", e);
+            return null;
+        }
+    }
+    
+    public static void writeFile(Path path, String fileName, String content) {
+        try {
+            Files.createDirectories(path);
             
-            File file = new File(path, fileName);
-            if (!file.exists())
-                file.createNewFile();
+            var file = path.resolve(fileName);
             
-            try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
-                writer.write(content);
-            }
-            return true;
+            if (!Files.exists(file))
+                Files.createFile(file);
+            
+            Files.writeString(file, content);
         } catch (IOException e) {
-            return false;
+            SkinRestorer.LOGGER.error("failed to write file", e);
         }
     }
 }

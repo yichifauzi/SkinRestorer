@@ -25,22 +25,20 @@ public final class Config {
     }
     
     public static Config load(Path path) {
-        var configFile = path.resolve(Config.CONFIG_FILENAME).toFile();
+        var configFile = path.resolve(Config.CONFIG_FILENAME);
         
         Config config = null;
-        if (configFile.exists()) {
-            try {
-                config = JsonUtils.fromJson(FileUtils.readFile(configFile), Config.class);
-            } catch (Exception e) {
-                SkinRestorer.LOGGER.warn("Could not load config", e);
-            }
+        try {
+            config = JsonUtils.fromJson(FileUtils.readFile(configFile), Config.class);
+        } catch (Exception e) {
+            SkinRestorer.LOGGER.warn("Could not load config", e);
         }
         
         if (config == null) {
             config = new Config();
         }
         
-        FileUtils.writeFile(path.toFile(), Config.CONFIG_FILENAME, JsonUtils.toJson(config));
+        FileUtils.writeFile(path, Config.CONFIG_FILENAME, JsonUtils.toJson(config));
         
         return config;
     }
