@@ -7,6 +7,9 @@ import net.lionarius.skinrestorer.util.Result;
 import java.util.Optional;
 
 public final class EmptySkinProvider implements SkinProvider {
+    
+    public static final String PROVIDER_NAME = "empty";
+    
     @Override
     public String getArgumentName() {
         return "placeholder";

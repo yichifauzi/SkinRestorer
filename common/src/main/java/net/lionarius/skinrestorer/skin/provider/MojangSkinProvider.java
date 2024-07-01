@@ -2,12 +2,12 @@ package net.lionarius.skinrestorer.skin.provider;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.util.JsonUtils;
 import net.lionarius.skinrestorer.util.Result;
 import net.lionarius.skinrestorer.util.WebUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URI;
@@ -16,6 +16,8 @@ import java.net.http.HttpRequest;
 import java.util.Optional;
 
 public final class MojangSkinProvider implements SkinProvider {
+    
+    public static final String PROVIDER_NAME = "mojang";
     
     private static final URI API_URI;
     private static final URI SESSION_SERVER_URI;
@@ -29,6 +31,9 @@ public final class MojangSkinProvider implements SkinProvider {
         }
     }
     
+    public static SkinProviderContext skinProviderContextFromProfile(GameProfile gameProfile) {
+        return new SkinProviderContext(MojangSkinProvider.PROVIDER_NAME, gameProfile.getName(), null);
+    }
     
     @Override
     public String getArgumentName() {

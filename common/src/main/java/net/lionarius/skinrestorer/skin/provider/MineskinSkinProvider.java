@@ -16,6 +16,8 @@ import java.util.Optional;
 
 public final class MineskinSkinProvider implements SkinProvider {
     
+    public static final String PROVIDER_NAME = "web";
+    
     private static final URI API_URI;
     
     static {

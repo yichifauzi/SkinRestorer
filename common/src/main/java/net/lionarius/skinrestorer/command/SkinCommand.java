@@ -103,11 +103,12 @@ public final class SkinCommand {
             CommandSourceStack src,
             Collection<GameProfile> targets,
             SkinProviderContext context,
+            boolean save,
             boolean setByOperator
     ) {
         src.sendSystemMessage(Translation.translatableWithFallback(Translation.COMMAND_SKIN_LOADING_KEY));
         
-        SkinRestorer.setSkinAsync(src.getServer(), targets, context).thenAccept(result -> {
+        SkinRestorer.setSkinAsync(src.getServer(), targets, context, save).thenAccept(result -> {
             if (result.isError()) {
                 src.sendFailure(Translation.translatableWithFallback(
                         Translation.COMMAND_SKIN_FAILED_KEY,
@@ -122,6 +123,15 @@ public final class SkinCommand {
         });
         
         return targets.size();
+    }
+    
+    private static int setSubcommand(
+            CommandSourceStack src,
+            Collection<GameProfile> targets,
+            SkinProviderContext context,
+            boolean setByOperator
+    ) {
+        return SkinCommand.setSubcommand(src, targets, context, true, setByOperator);
     }
     
     private static int setSubcommand(

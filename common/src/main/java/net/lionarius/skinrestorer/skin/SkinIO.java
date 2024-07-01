@@ -1,6 +1,8 @@
 package net.lionarius.skinrestorer.skin;
 
 import com.mojang.authlib.properties.Property;
+import net.lionarius.skinrestorer.skin.provider.MineskinSkinProvider;
+import net.lionarius.skinrestorer.skin.provider.MojangSkinProvider;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.JsonUtils;
 
@@ -63,7 +65,7 @@ public class SkinIO {
             var capeTexture = textures.getAsJsonObject("CAPE");
             if (capeTexture != null) {
                 var profileName = propertyJson.get("profileName").getAsString();
-                return new SkinValue("mojang", profileName, null, property);
+                return new SkinValue(MojangSkinProvider.PROVIDER_NAME, profileName, null, property);
             }
             
             var skinTexture = textures.getAsJsonObject("SKIN");
@@ -77,7 +79,7 @@ public class SkinIO {
                     variant = SkinVariant.SLIM;
             }
             
-            return new SkinValue("web", url, variant, property);
+            return new SkinValue(MineskinSkinProvider.PROVIDER_NAME, url, variant, property);
         } catch (Exception e) {
             return SkinValue.EMPTY;
         }

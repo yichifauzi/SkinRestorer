@@ -1,6 +1,7 @@
 package net.lionarius.skinrestorer.skin;
 
 import com.mojang.authlib.properties.Property;
+import net.lionarius.skinrestorer.skin.provider.EmptySkinProvider;
 import net.lionarius.skinrestorer.skin.provider.SkinProviderContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -8,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 public record SkinValue(@NotNull String provider, @Nullable String argument, @Nullable SkinVariant variant,
                         @Nullable Property value, @Nullable Property originalValue) {
     
-    public static final SkinValue EMPTY = new SkinValue("empty", null, null, null);
+    public static final SkinValue EMPTY = new SkinValue(EmptySkinProvider.PROVIDER_NAME, null, null, null);
     
     public SkinValue(String provider, String argument, SkinVariant variant, Property value) {
         this(provider, argument, variant, value, null);

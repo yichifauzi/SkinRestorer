@@ -5,9 +5,7 @@ import net.lionarius.skinrestorer.config.Config;
 import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinStorage;
 import net.lionarius.skinrestorer.skin.SkinValue;
-import net.lionarius.skinrestorer.skin.provider.SkinProvider;
-import net.lionarius.skinrestorer.skin.provider.SkinProviderContext;
-import net.lionarius.skinrestorer.skin.provider.SkinProviderRegistry;
+import net.lionarius.skinrestorer.skin.provider.*;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.Result;
@@ -59,9 +57,9 @@ public final class SkinRestorer {
     public static void onInitialize(Path rootConfigDir) {
         SkinRestorer.configDir = rootConfigDir.resolve(SkinRestorer.MOD_ID);
         
-        SkinRestorer.providersRegistry.register("empty", SkinProvider.EMPTY, false);
-        SkinRestorer.providersRegistry.register("mojang", SkinProvider.MOJANG);
-        SkinRestorer.providersRegistry.register("web", SkinProvider.MINESKIN);
+        SkinRestorer.providersRegistry.register(EmptySkinProvider.PROVIDER_NAME, SkinProvider.EMPTY, false);
+        SkinRestorer.providersRegistry.register(MojangSkinProvider.PROVIDER_NAME, SkinProvider.MOJANG);
+        SkinRestorer.providersRegistry.register(MineskinSkinProvider.PROVIDER_NAME, SkinProvider.MINESKIN);
     }
     
     public static void onServerStarted(MinecraftServer server) {
@@ -81,14 +79,15 @@ public final class SkinRestorer {
         return String.format("/assets/%s/%s", SkinRestorer.MOD_ID, name);
     }
     
-    public static Collection<ServerPlayer> applySkin(MinecraftServer server, Iterable<GameProfile> targets, SkinValue value) {
+    public static Collection<ServerPlayer> applySkin(MinecraftServer server, Iterable<GameProfile> targets, SkinValue value, boolean save) {
         var acceptedPlayers = new HashSet<ServerPlayer>();
         
         for (var profile : targets) {
             if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId()))
                 value = value.setOriginalValue(PlayerUtils.getPlayerSkin(profile));
             
-            SkinRestorer.getSkinStorage().setSkin(profile.getId(), value);
+            if (save)
+                SkinRestorer.getSkinStorage().setSkin(profile.getId(), value);
             
             if (PlayerUtils.areSkinPropertiesEquals(value.value(), PlayerUtils.getPlayerSkin(profile)))
                 continue;
@@ -106,10 +105,15 @@ public final class SkinRestorer {
         return acceptedPlayers;
     }
     
+    public static Collection<ServerPlayer> applySkin(MinecraftServer server, Iterable<GameProfile> targets, SkinValue value) {
+        return SkinRestorer.applySkin(server, targets, value, true);
+    }
+    
     public static CompletableFuture<Result<Collection<ServerPlayer>, String>> setSkinAsync(
             MinecraftServer server,
             Collection<GameProfile> targets,
-            SkinProviderContext context
+            SkinProviderContext context,
+            boolean save
     ) {
         return CompletableFuture.supplyAsync(
                         () -> SkinRestorer.getProvider(context.name()).map(provider -> provider.getSkin(context.argument(), context.variant()))
@@ -124,7 +128,7 @@ public final class SkinRestorer {
                     
                     var skinValue = SkinValue.fromProviderContextWithValue(context, skinResult.getSuccessValue().orElse(null));
                     
-                    var acceptedPlayers = SkinRestorer.applySkin(server, targets, skinValue);
+                    var acceptedPlayers = SkinRestorer.applySkin(server, targets, skinValue, save);
                     
                     return Result.<Collection<ServerPlayer>, String>success(acceptedPlayers);
                 }, server)
