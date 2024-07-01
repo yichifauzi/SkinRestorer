@@ -8,6 +8,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.lionarius.skinrestorer.SkinRestorer;
+import net.lionarius.skinrestorer.skin.SkinValue;
 import net.lionarius.skinrestorer.skin.SkinVariant;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.skin.provider.SkinProviderContext;
@@ -31,7 +32,7 @@ public final class SkinCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> base =
                 literal("skin")
-                        .then(buildAction("clear", () -> new SkinProviderContext("empty", null, null)));
+                        .then(buildAction("clear", SkinValue.EMPTY::toProviderContext));
         
         LiteralArgumentBuilder<CommandSourceStack> set = literal("set");
         
