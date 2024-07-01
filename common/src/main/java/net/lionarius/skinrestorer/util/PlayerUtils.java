@@ -75,6 +75,12 @@ public final class PlayerUtils {
             ));
             player.connection.teleport(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
             player.connection.send(new ClientboundSetEntityMotionPacket(player));
+            var vehicle = player.getVehicle();
+            if (vehicle != null)
+                player.connection.send(new ClientboundSetPassengersPacket(vehicle));
+            if (!player.getPassengers().isEmpty())
+                player.connection.send(new ClientboundSetPassengersPacket(player));
+            
             player.onUpdateAbilities();
             player.giveExperiencePoints(0);
             playerList.sendPlayerPermissionLevel(player);
