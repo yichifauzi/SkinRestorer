@@ -85,6 +85,9 @@ public final class SkinRestorer {
         var acceptedPlayers = new HashSet<ServerPlayer>();
         
         for (var profile : targets) {
+            if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId()))
+                value = value.setOriginalValue(PlayerUtils.getPlayerSkin(profile));
+            
             SkinRestorer.getSkinStorage().setSkin(profile.getId(), value);
             
             if (PlayerUtils.areSkinPropertiesEquals(value.value(), PlayerUtils.getPlayerSkin(profile)))

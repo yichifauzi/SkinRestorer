@@ -44,6 +44,9 @@ public class SkinStorage {
         if (skin == null)
             skin = SkinValue.EMPTY;
         
+        if (skinMap.containsKey(uuid) && skin.originalValue() == null)
+            skin = skin.setOriginalValue(skinMap.get(uuid).originalValue());
+        
         skinMap.put(uuid, skin);
     }
 }

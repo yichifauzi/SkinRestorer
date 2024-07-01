@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.skin.SkinValue;
 import net.lionarius.skinrestorer.skin.provider.SkinProviderContext;
+import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.Result;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
@@ -36,12 +37,20 @@ public abstract class ServerLoginPacketListenerImplMixin {
         if (skinrestorer_pendingSkin == null) {
             skinrestorer_pendingSkin = CompletableFuture.supplyAsync(() -> {
                 assert authenticatedProfile != null;
-                SkinRestorer.LOGGER.debug("Fetching {}'s skin", authenticatedProfile.getName());
+                var originalSkin = PlayerUtils.getPlayerSkin(authenticatedProfile);
                 
-                if (SkinRestorer.getSkinStorage().hasSavedSkin(authenticatedProfile.getId()))
+                if (SkinRestorer.getSkinStorage().hasSavedSkin(authenticatedProfile.getId())) {
+                    if (originalSkin != null) { // update to the latest official skin
+                        var value = SkinRestorer.getSkinStorage().getSkin(authenticatedProfile.getId());
+                        SkinRestorer.getSkinStorage().setSkin(authenticatedProfile.getId(), value.setOriginalValue(originalSkin));
+                    }
+                    
                     return null;
+                }
                 
-                if (!server.enforceSecureProfile() && SkinRestorer.getConfig().fetchSkinOnFirstJoin()) { // fetch from mojang provider by username
+                if (originalSkin == null && SkinRestorer.getConfig().fetchSkinOnFirstJoin()) {
+                    SkinRestorer.LOGGER.debug("Fetching {}'s skin", authenticatedProfile.getName());
+                    
                     var context = new SkinProviderContext("mojang", authenticatedProfile.getName(), null);
                     var result = SkinRestorer.getProvider(context.name()).map(
                             provider -> provider.getSkin(context.argument(), context.variant())
