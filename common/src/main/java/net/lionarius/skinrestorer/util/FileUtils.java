@@ -64,9 +64,9 @@ public final class FileUtils {
     
     public static void writeFile(Path file, String content) {
         try {
-            var root = file.getRoot();
-            if (root != null)
-                Files.createDirectories(root);
+            var parent = file.getParent();
+            if (parent != null)
+                Files.createDirectories(parent);
             
             if (!Files.exists(file))
                 Files.createFile(file);
