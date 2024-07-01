@@ -120,7 +120,7 @@ public final class SkinRestorer {
                 )
                 .thenApplyAsync(result -> {
                     if (result.isEmpty())
-                        throw new IllegalArgumentException("provider " + context.name() + " is not registered");
+                        return Result.<Collection<ServerPlayer>, String>error("provider '" + context.name() + "' is not registered");
                     
                     var skinResult = result.get();
                     if (skinResult.isError())
