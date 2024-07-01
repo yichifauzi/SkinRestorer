@@ -10,6 +10,7 @@ import com.mojang.brigadier.context.CommandContext;
 import net.lionarius.skinrestorer.SkinRestorer;
 import net.lionarius.skinrestorer.skin.SkinValue;
 import net.lionarius.skinrestorer.skin.SkinVariant;
+import net.lionarius.skinrestorer.skin.provider.MojangSkinProvider;
 import net.lionarius.skinrestorer.skin.provider.SkinProvider;
 import net.lionarius.skinrestorer.skin.provider.SkinProviderContext;
 import net.lionarius.skinrestorer.util.PlayerUtils;
@@ -61,8 +62,23 @@ public final class SkinCommand {
         if (player == null)
             return 0;
         
-        var context = SkinRestorer.getSkinStorage().getSkin(player.getUUID()).toProviderContext();
-        return SkinCommand.setSubcommand(src, Collections.singleton(player.getGameProfile()), context, false);
+        var profile = player.getGameProfile();
+        
+        SkinProviderContext context = null;
+        var save = true;
+        if (!SkinRestorer.getSkinStorage().hasSavedSkin(profile.getId())) {
+            if (profile.getProperties().containsKey(PlayerUtils.TEXTURES_KEY)) {
+                save = false;
+                context = MojangSkinProvider.skinProviderContextFromProfile(profile);
+            }
+        } else {
+            context = SkinRestorer.getSkinStorage().getSkin(profile.getId()).toProviderContext();
+        }
+        
+        if (context == null)
+            return 0;
+        
+        return SkinCommand.setSubcommand(src, Collections.singleton(profile), context, save, false);
     }
     
     private static int resetSubcommand(
@@ -79,9 +95,9 @@ public final class SkinCommand {
             if (skin == null)
                 continue;
             
-            var updatedPlayer = SkinRestorer.applySkin(src.getServer(), Collections.singleton(profile), skin);
-            
+            var updatedPlayer = SkinRestorer.applySkin(src.getServer(), Collections.singleton(profile), skin, false);
             SkinRestorer.getSkinStorage().deleteSkin(profile.getId());
+            
             updatedPlayers.addAll(updatedPlayer);
         }
         
