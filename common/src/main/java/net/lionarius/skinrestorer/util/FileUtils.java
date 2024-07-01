@@ -18,9 +18,6 @@ public final class FileUtils {
     
     public static void tryMigrateOldSkinDirectory(Path newDirectory) {
         try {
-            if (!Files.exists(newDirectory))
-                Files.createDirectories(newDirectory);
-            
             var configDirectory = SkinRestorer.getConfigDir();
             try (var stream = Files.list(configDirectory)) {
                 var files = stream.filter(file -> {
@@ -30,6 +27,11 @@ public final class FileUtils {
                            && !name.startsWith(Config.CONFIG_FILENAME)
                            && name.endsWith(SkinIO.FILE_EXTENSION);
                 }).toList();
+                
+                if (!files.isEmpty()) {
+                    if (!Files.exists(newDirectory))
+                        Files.createDirectories(newDirectory);
+                }
                 
                 for (var file : files)
                     Files.move(file, newDirectory.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
