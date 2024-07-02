@@ -6,10 +6,10 @@ import net.lionarius.skinrestorer.skin.SkinIO;
 import net.lionarius.skinrestorer.skin.SkinStorage;
 import net.lionarius.skinrestorer.skin.SkinValue;
 import net.lionarius.skinrestorer.skin.provider.*;
+import net.lionarius.skinrestorer.translation.Translation;
 import net.lionarius.skinrestorer.util.FileUtils;
 import net.lionarius.skinrestorer.util.PlayerUtils;
 import net.lionarius.skinrestorer.util.Result;
-import net.lionarius.skinrestorer.translation.Translation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -56,6 +56,7 @@ public final class SkinRestorer {
     
     public static void onInitialize(Path rootConfigDir) {
         SkinRestorer.configDir = rootConfigDir.resolve(SkinRestorer.MOD_ID);
+        SkinRestorer.reloadConfig();
         
         SkinRestorer.providersRegistry.register(EmptySkinProvider.PROVIDER_NAME, SkinProvider.EMPTY, false);
         SkinRestorer.providersRegistry.register(MojangSkinProvider.PROVIDER_NAME, SkinProvider.MOJANG);
@@ -67,7 +68,6 @@ public final class SkinRestorer {
         Path worldSkinDirectory = server.getWorldPath(LevelResource.ROOT).resolve(SkinRestorer.MOD_ID);
         FileUtils.tryMigrateOldSkinDirectory(worldSkinDirectory);
         
-        SkinRestorer.reloadConfig();
         SkinRestorer.skinStorage = new SkinStorage(new SkinIO(worldSkinDirectory));
     }
     
@@ -133,7 +133,6 @@ public final class SkinRestorer {
                     
                     return Result.<Collection<ServerPlayer>, String>success(acceptedPlayers);
                 }, server)
-                .orTimeout(10, TimeUnit.SECONDS)
                 .exceptionally(e -> {
                     SkinRestorer.LOGGER.error(e.toString());
                     return Result.error(e.getMessage());

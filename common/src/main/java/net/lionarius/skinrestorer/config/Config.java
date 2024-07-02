@@ -15,13 +15,24 @@ public final class Config {
     
     private boolean fetchSkinOnFirstJoin = true;
     
+    private String proxy = "";
+    
+    private long requestTimeout = 10;
     
     public String getLanguage() {
-        return language;
+        return this.language;
     }
     
     public boolean fetchSkinOnFirstJoin() {
-        return fetchSkinOnFirstJoin;
+        return this.fetchSkinOnFirstJoin;
+    }
+    
+    public String getProxy() {
+        return this.proxy;
+    }
+    
+    public long getRequestTimeout() {
+        return this.requestTimeout;
     }
     
     public static Config load(Path path) {
@@ -34,9 +45,8 @@ public final class Config {
             SkinRestorer.LOGGER.warn("Could not load config", e);
         }
         
-        if (config == null) {
+        if (config == null)
             config = new Config();
-        }
         
         FileUtils.writeFile(path.resolve(Config.CONFIG_FILENAME), JsonUtils.toJson(config));
         

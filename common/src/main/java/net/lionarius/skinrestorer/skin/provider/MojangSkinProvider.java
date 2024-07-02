@@ -82,7 +82,7 @@ public final class MojangSkinProvider implements SkinProvider {
         return profile.get("id").getAsString();
     }
     
-    private static JsonObject getMojangProfile(final String uuid) throws IOException {
+    private static JsonObject getMojangProfile(String uuid) throws IOException {
         var request = HttpRequest.newBuilder()
                 .uri(MojangSkinProvider.SESSION_SERVER_URI
                         .resolve("session/minecraft/profile/")

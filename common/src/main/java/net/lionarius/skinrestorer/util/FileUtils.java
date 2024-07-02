@@ -57,6 +57,9 @@ public final class FileUtils {
     
     public static String readFile(Path file) {
         try {
+            if (!Files.exists(file))
+                return null;
+            
             return Files.readString(file);
         } catch (Exception e) {
             SkinRestorer.LOGGER.error("failed to read file", e);
