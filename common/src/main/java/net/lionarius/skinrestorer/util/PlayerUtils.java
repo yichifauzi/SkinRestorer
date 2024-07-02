@@ -87,7 +87,7 @@ public final class PlayerUtils {
             playerList.sendPlayerPermissionLevel(player);
             playerList.sendLevelInfo(player, serverLevel);
             playerList.sendAllPlayerInfo(player);
-            playerList.sendActivePlayerEffects(player);
+            PlayerUtils.sendActivePlayerEffects(player);
         }
     }
     

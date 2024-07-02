@@ -17,14 +17,14 @@ A server-side mod for restoring skins on offline servers.
 [[dependencies.skinrestorer]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.0.0-beta,)"
+versionRange = "[20.5.0-beta,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.skinrestorer]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21,)"
+versionRange = "[1.20.5,1.20.6]"
 ordering = "NONE"
 side = "BOTH"
 
