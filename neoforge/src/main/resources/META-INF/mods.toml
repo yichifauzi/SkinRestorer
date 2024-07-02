@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[2,)"
+loaderVersion = "[1,)"
 issueTrackerURL = "https://github.com/Suiranoil/SkinRestorer/issues"
 license = "MIT"
 
@@ -16,15 +16,15 @@ A server-side mod for restoring skins on offline servers.
 
 [[dependencies.skinrestorer]]
 modId = "neoforge"
-type = "required"
-versionRange = "[20.5.0-beta,)"
+mandatory = true
+versionRange = "[20.3.1-beta,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.skinrestorer]]
 modId = "minecraft"
-type = "required"
-versionRange = "[1.20.5,1.20.6]"
+mandatory = true
+versionRange = "[1.20.3,1.20.4]"
 ordering = "NONE"
 side = "BOTH"
 
